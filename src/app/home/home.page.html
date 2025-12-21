@@ -1,20 +1,58 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<div class="dashboard-container">
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Mobile Backdrop -->
+  <div class="mobile-backdrop" [class.show]="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen">
+    <div class="logo-area">
+      <div class="logo-icon">
+        <ion-icon name="paw" class="paw-icon"></ion-icon>
+      </div>
+      <h2 class="app-title">Veterinaria</h2>
+    </div>
+
+    <nav class="nav-menu">
+      <div *ngFor="let item of menuItems" class="nav-item" [class.active]="item.active" (click)="navigateTo(item)">
+        <div class="active-indicator" *ngIf="item.active"></div>
+        <ion-icon [name]="item.icon"></ion-icon>
+        <span>{{ item.label }}</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">Logged in as: {{ userName }}</div>
+      <button class="logout-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Layout -->
+  <div class="main-content-wrapper">
+    <!-- Header (Fixed at the top) -->
+    <header class="top-bar">
+      <div class="left-section">
+        <!-- Mobile Menu Button -->
+        <button class="menu-toggle" (click)="toggleMobileMenu()">
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+
+        <div class="search-area">
+          <span class="greeting">Hola, {{ userName }}</span>
+        </div>
+      </div>
+
+      <div class="search-input-wrapper">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" placeholder="Buscar..." />
+      </div>
+    </header>
+
+    <!-- Content area where modules load -->
+    <div class="dynamic-content">
+      <ion-router-outlet></ion-router-outlet>
+    </div>
   </div>
-</ion-content>
+</div>

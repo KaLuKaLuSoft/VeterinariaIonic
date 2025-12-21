@@ -1,0 +1,40 @@
+<ion-content [fullscreen]="true" class="login-page">
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="logo-section">
+                <ion-icon name="paw" class="paw-logo"></ion-icon>
+                <h1 class="brand-name">VETERINARIA</h1>
+            </div>
+
+            <form [formGroup]="formulario" (ngSubmit)="onSubmit()" class="login-form">
+                <div class="input-field">
+                    <ion-icon name="person-outline" class="field-icon"></ion-icon>
+                    <ion-input type="text" placeholder="Usuario" formControlName="usuario" fill="none">
+                    </ion-input>
+                </div>
+
+                <div class="input-field">
+                    <ion-icon name="lock-closed-outline" class="field-icon"></ion-icon>
+                    <ion-input [type]="hide ? 'password' : 'text'" placeholder="Contraseña" formControlName="password"
+                        fill="none">
+                    </ion-input>
+                    <button type="button" (click)="togglePassword()" class="toggle-password">
+                        <ion-icon [name]="hide ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                    </button>
+                </div>
+
+                <div class="remember-forgot">
+                    <div class="remember">
+                        <ion-checkbox formControlName="rememberMe"></ion-checkbox>
+                        <ion-label>Recordarme</ion-label>
+                    </div>
+                    <a (click)="onForgotPassword($event)" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" [disabled]="formulario.invalid" class="login-button">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+</ion-content>

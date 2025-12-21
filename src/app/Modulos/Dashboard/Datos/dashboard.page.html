@@ -1,0 +1,53 @@
+<ion-content [fullscreen]="true">
+    <h1 class="page-title">Dashboard</h1>
+
+    <!-- Stats Cards -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <h3>Citas de hoy:</h3>
+            <div class="stat-value green">{{ stats.appointments }}</div>
+            <div class="stat-sub">pending</div>
+        </div>
+        <div class="stat-card">
+            <h3>Nuevos pacientes este mes:</h3>
+            <div class="stat-value green">{{ stats.newPatients }}</div>
+            <div class="stat-sub">pending registered</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total revenue (Q3)</h3>
+            <div class="stat-value green">${{ stats.revenue | number }}</div>
+        </div>
+    </section>
+
+    <!-- Appointments Table -->
+    <section class="appointments-section">
+        <h2>Próximas Citas</h2>
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Hora</th>
+                        <th>Motivo</th>
+                        <th>Dr.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let apt of appointments">
+                        <td>{{ apt.patient }}</td>
+                        <td>{{ apt.time }}</td>
+                        <td>
+                            <ng-container *ngIf="apt.motive !== 'Vacunación'; else badge">
+                                {{ apt.motive }}
+                            </ng-container>
+                            <ng-template #badge>
+                                <span class="badge">{{ apt.motive }}</span>
+                            </ng-template>
+                        </td>
+                        <td>{{ apt.doctor }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</ion-content>

@@ -1,27 +1,277 @@
-#container {
-  text-align: center;
+// Variables
+$sidebar-bg: #1e293b;
+$sidebar-text: #94a3b8;
+$sidebar-active-bg: #2d3748;
+$accent-green: #10b981;
+$main-bg: #f3f4f6;
+$card-bg: #ffffff;
+$text-dark: #1f2937;
 
-  position: absolute;
+ion-content {
+  --background: #{$main-bg};
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  position: relative; // Context for absolute positioning if needed
+}
+
+// Mobile Backdrop
+.mobile-backdrop {
+  position: fixed;
+  top: 0;
   left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+
+  &.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+// Menu Toggle Button (default hidden)
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: $text-dark;
+  cursor: pointer;
+  margin-right: 15px;
+  padding: 0;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+.left-section {
+  display: flex;
+  align-items: center;
 }
 
-#container a {
-  text-decoration: none;
+// Sidebar
+.sidebar {
+  width: 260px;
+  background-color: $sidebar-bg;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 15px 0; // Reducido de 20px
+  flex-shrink: 0;
+  height: 100vh; // Asegura que la barra ocupe el alto de la pantalla
+  position: sticky;
+  top: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px; // Reducido drásticamente de 20px
+    padding: 0 20px;
+
+    .logo-icon {
+      width: 60px; // Reducido drásticamente de 80px
+      height: 60px; // Reducido drásticamente de 80px
+      margin-bottom: 5px; // Reducido de 10px
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .paw-icon {
+        font-size: 45px; // Reducido de 60px
+        color: #ffffff;
+      }
+    }
+
+    .app-title {
+      font-size: 1.1rem; // Reducido de 1.3rem
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 1px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+  }
+
+  .nav-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px; // Reducido de 5px
+    overflow-y: auto; // Permite scroll si hay muchos ítems
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 25px; // Reducido drásticamente de 10px
+      color: $sidebar-text;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+
+      ion-icon {
+        font-size: 1.2rem;
+        margin-right: 15px;
+      }
+
+      &:hover {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      &.active {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+
+        .active-indicator {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+          background-color: $accent-green;
+        }
+      }
+    }
+  }
+
+  .sidebar-footer {
+    padding: 15px 20px; // Reducido de 20px
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    .user-info {
+      font-size: 0.75rem; // Reducido de 0.8rem
+      color: $sidebar-text;
+      margin-bottom: 10px; // Reducido de 15px
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 0;
+
+      ion-icon {
+        margin-right: 8px;
+        font-size: 1.1rem;
+      }
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+// Main Content Layout
+.main-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden; // Parent doesn't scroll, children do
+  background-color: $main-bg;
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 15px 25px;
+    margin: 20px 25px 0 25px; // Spacing from edges
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    z-index: 10;
+    flex-shrink: 0;
+
+    .search-area {
+      .greeting {
+        color: #64748b;
+        font-size: 0.95rem;
+      }
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 5px 0;
+      color: #94a3b8;
+
+      input {
+        border: none;
+        outline: none;
+        padding-left: 10px;
+        font-size: 0.9rem;
+        color: $text-dark;
+
+        &::placeholder {
+          color: #cbd5e1;
+        }
+      }
+    }
+  }
+
+  .dynamic-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden; // Let ion-content inside handle scroll
+  }
+}
+
+// Media Queries
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
+    z-index: 100;
+    transform: translateX(-100%);
+
+    &.mobile-open {
+      transform: translateX(0);
+    }
+  }
+
+  .main-content-wrapper {
+    height: 100vh;
+
+    .top-bar {
+      margin: 10px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 15px;
+
+      .left-section {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .search-input-wrapper {
+        width: 100%;
+      }
+    }
+
+    .menu-toggle {
+      display: block; // Show hamburger on mobile
+    }
+  }
 }

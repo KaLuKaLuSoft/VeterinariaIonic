@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "msedge",
+            "name": "http://localhost:8100/",
+            "request": "launch",
+            "url": "http://localhost:8100/",
+            "userDataDir": "${workspaceFolder}/.vscode/edge-profile"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "localhost (chrome)",
+            "url": "http://localhost:8100",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
