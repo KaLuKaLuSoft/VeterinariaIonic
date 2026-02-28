@@ -1,6 +1,277 @@
 <ion-content [fullscreen]="true">
-    <div class="container">
-        <h1 class="page-title">Clientes</h1>
-        <p>Bienvenido al módulo de gestión de clientes.</p>
+    <div class="clientes-content">
+        <div class="page-header">
+            <h1 class="page-title">Gestión de Clientes</h1>
+            <ion-button (click)="setOpen(true, false)" mode="ios" class="add-button">
+                <ion-icon name="add-outline" slot="start"></ion-icon>
+                Nuevo Cliente
+            </ion-button>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <ion-icon name="search-outline"></ion-icon>
+                <input type="text" placeholder="Buscar por nombre, email o código..." [(ngModel)]="searchTerm" />
+            </div>
+            <button class="filter-btn">
+                <ion-icon name="filter-outline"></ion-icon>
+                Filtros
+            </button>
+        </div>
+
+        <!-- Clients Table -->
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cliente</th>
+                        <th>Contacto</th>
+                        <th>Dirección</th>
+                        <th>Tipo</th>
+                        <th>Acceso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let cliente of clientes">
+                        <td class="code-cell">{{ cliente.codigo_cliente }}</td>
+                        <td>
+                            <div class="client-info">
+                                <span class="name">{{ cliente.nombre }} {{ cliente.apellido }}</span>
+                                <span class="email">{{ cliente.email }}</span>
+                            </div>
+                        </td>
+                        <td>{{ cliente.telefono_principal }}</td>
+                        <td>{{ cliente.direccion }}</td>
+                        <td>
+                            <span class="status-badge" [class.vip]="cliente.tipo_cliente === 'VIP'">
+                                {{ cliente.tipo_cliente }}
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <button class="action-btn view" (click)="openDetail(cliente)" title="Ver Detalle">
+                                <ion-icon name="information-circle-outline"></ion-icon>
+                            </button>
+                            <button class="action-btn edit" (click)="setOpen(true, true, cliente)" title="Editar">
+                                <ion-icon name="pencil-outline"></ion-icon>
+                            </button>
+                            <button class="action-btn delete" (click)="onDelete(cliente)" title="Eliminar">
+                                <ion-icon name="trash-outline"></ion-icon>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- Add Client Modal -->
+    <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)" class="client-modal">
+        <ng-template>
+            <ion-header class="ion-no-border">
+                <ion-toolbar>
+                    <ion-title>{{ isEditing ? 'Editar Cliente' : 'Registrar Nuevo Cliente' }}</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="setOpen(false)">
+                            <ion-icon name="close-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+
+            <ion-content class="ion-padding">
+                <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="modal-form">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>Código Interno (Opcional)</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                <input type="text" formControlName="codigo_cliente" placeholder="Ej: CLI-100">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nombres *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <input type="text" formControlName="nombre" placeholder="Nombre completo">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Apellidos *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <input type="text" formControlName="apellido" placeholder="Apellido paterno/materno">
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Email *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="mail-outline"></ion-icon>
+                                <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Teléfono Principal</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="call-outline"></ion-icon>
+                                <input type="tel" formControlName="telefono_principal" placeholder="+X XXX XXX XXX">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Teléfono Secundario</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="call-outline"></ion-icon>
+                                <input type="tel" formControlName="telefono_secundario" placeholder="Opcional">
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Dirección</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="location-outline"></ion-icon>
+                                <input type="text" formControlName="direccion" placeholder="Calle, Nro, Referencia">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tipo de Cliente</label>
+                            <div class="select-wrapper">
+                                <ion-icon name="filter-outline"></ion-icon>
+                                <select formControlName="id_tipo_cliente">
+                                    <option [value]="1">Regular</option>
+                                    <option [value]="2">VIP</option>
+                                    <option [value]="3">Corporativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ciudad</label>
+                            <div class="select-wrapper">
+                                <ion-icon name="location-outline"></ion-icon>
+                                <select formControlName="id_ciudad">
+                                    <option [value]="null">Seleccionar ciudad</option>
+                                    <option [value]="1">Santa Cruz</option>
+                                    <option [value]="2">La Paz</option>
+                                    <option [value]="3">Cochabamba</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Observaciones</label>
+                            <div class="input-wrapper textarea">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                <textarea formControlName="observaciones" rows="3"
+                                    placeholder="Notas adicionales..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <ion-button type="button" fill="clear" color="medium"
+                            (click)="setOpen(false)">Cancelar</ion-button>
+                        <ion-button type="submit" [disabled]="clientForm.invalid" class="save-btn">Guardar
+                            Cliente</ion-button>
+                    </div>
+                </form>
+            </ion-content>
+        </ng-template>
+    </ion-modal>
+
+    <!-- Detail Client Modal -->
+    <ion-modal [isOpen]="isDetailModalOpen" (didDismiss)="closeDetail()" class="client-detail-modal">
+        <ng-template>
+            <div class="detail-container">
+                <div class="detail-header">
+                    <div class="client-profile">
+                        <div class="avatar-circle">
+                            {{ selectedCliente?.nombre?.charAt(0) }}{{ selectedCliente?.apellido?.charAt(0) }}
+                        </div>
+                        <div class="header-text">
+                            <h2>{{ selectedCliente?.nombre }} {{ selectedCliente?.apellido }}</h2>
+                            <span class="status-badge" [class.vip]="selectedCliente?.tipo_cliente === 'VIP'">
+                                {{ selectedCliente?.tipo_cliente }}
+                            </span>
+                        </div>
+                    </div>
+                    <ion-button fill="clear" (click)="closeDetail()" class="close-btn">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </ion-button>
+                </div>
+
+                <ion-content>
+                    <div class="detail-grid">
+                        <div class="detail-section">
+                            <h3 class="section-title">
+                                <ion-icon name="information-circle-outline"></ion-icon>
+                                Información General
+                            </h3>
+                            <div class="info-item">
+                                <span class="label">Código de Cliente</span>
+                                <span class="value code">{{ selectedCliente?.codigo_cliente }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Fecha de Registro</span>
+                                <span class="value">
+                                    <ion-icon name="calendar-outline"></ion-icon>
+                                    22 Dic, 2025
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3 class="section-title">
+                                <ion-icon name="call-outline"></ion-icon>
+                                Contacto
+                            </h3>
+                            <div class="info-item">
+                                <span class="label">Correo Electrónico</span>
+                                <span class="value">{{ selectedCliente?.email }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Teléfono Principal</span>
+                                <span class="value">{{ selectedCliente?.telefono_principal }}</span>
+                            </div>
+                            <div class="info-item" *ngIf="selectedCliente?.telefono_secundario">
+                                <span class="label">Teléfono Secundario</span>
+                                <span class="value">{{ selectedCliente?.telefono_secundario }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section full-width">
+                            <h3 class="section-title">
+                                <ion-icon name="location-outline"></ion-icon>
+                                Ubicación
+                            </h3>
+                            <div class="info-item">
+                                <span class="label">Dirección Domiliciaria</span>
+                                <span class="value">{{ selectedCliente?.direccion || 'No especificada' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section full-width" *ngIf="selectedCliente?.observaciones">
+                            <h3 class="section-title">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                Observaciones
+                            </h3>
+                            <div class="obs-box">
+                                {{ selectedCliente?.observaciones }}
+                            </div>
+                        </div>
+                    </div>
+                </ion-content>
+
+                <div class="detail-footer">
+                    <ion-button expand="block" fill="outline" color="dark" (click)="closeDetail()">Cerrar</ion-button>
+                </div>
+            </div>
+        </ng-template>
+    </ion-modal>
 </ion-content>

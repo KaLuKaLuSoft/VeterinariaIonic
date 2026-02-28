@@ -3,8 +3,8 @@ import { firstValueFrom, BehaviorSubject, tap, catchError, throwError } from 'rx
 import { Router } from '@angular/router'; // Importa el Router para la redirección
 import { Observable } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { SharedDataService } from './Compartido/shared-data.service';
-import { LoginmenusService } from '../../Usuarios/LoginMenus/Servicios/loginmenus.service';
+import { SharedDataService } from './compartido/shared-data.service';
+import { LoginmenusService } from '../../usuarios/loginmenus/servicios/loginmenus.service';
 import { NavController } from '@ionic/angular';
 
 // Interfaz para la respuesta de autenticación
@@ -185,6 +185,9 @@ export class LoginService {
     sessionStorage.removeItem('nombreSucursal');
     sessionStorage.removeItem('roles');
     sessionStorage.removeItem('idSucursal');
+    sessionStorage.removeItem('empleado');
+    sessionStorage.removeItem('idEmpresa');
+    sessionStorage.removeItem('empresa');
     // Redirigir al usuario a la página de login
     this.navCtrl.navigateRoot(['/login'], { animated: false });
 

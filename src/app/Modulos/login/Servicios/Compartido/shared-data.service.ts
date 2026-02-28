@@ -10,8 +10,8 @@ export class SharedDataService {
 
     constructor() { }
 
-    setUserData(id: any, usuario: any, nombreSucursal: any, roles: any, idSucursal: any) {
-        const data = { id, usuario, nombreSucursal, roles, idSucursal };
+    setUserData(id: any, usuario: any, nombreSucursal: any, roles: any, idSucursal: any, empleado: any, idEmpresa: any, empresa: any) {
+        const data = { id, usuario, nombreSucursal, roles, idSucursal, empleado, idEmpresa, empresa };
         this.userDataSubject.next(data);
     }
 

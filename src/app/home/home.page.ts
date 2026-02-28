@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonIcon, IonRouterOutlet } from '@ionic/angular/standalone';
-import { LoginService } from '../Modulos/login/Servicios/login.service';
+import { LoginService } from '../modulos/login/servicios/login.service';
 import { addIcons } from 'ionicons';
 import { homeOutline, peopleOutline, calendarOutline, clipboardOutline, cubeOutline, personOutline, settingsOutline, logOutOutline, searchOutline, paw, menuOutline, medkitOutline, receiptOutline, cartOutline, busOutline, cashOutline, businessOutline, chatbubbleOutline, documentTextOutline } from 'ionicons/icons';
 
@@ -13,11 +13,11 @@ import { homeOutline, peopleOutline, calendarOutline, clipboardOutline, cubeOutl
   standalone: true,
   imports: [CommonModule, IonIcon, IonRouterOutlet],
 })
-export class HomePage {
+export class HomePage implements OnInit {
   private loginService = inject(LoginService);
   private router = inject(Router);
 
-  userName = 'Dr. Ana Perez';
+  userName = '';
   isMobileMenuOpen = false;
 
   menuItems = [
@@ -39,6 +39,29 @@ export class HomePage {
 
   constructor() {
     addIcons({ homeOutline, peopleOutline, calendarOutline, clipboardOutline, cubeOutline, personOutline, settingsOutline, logOutOutline, searchOutline, paw, menuOutline, medkitOutline, receiptOutline, cartOutline, busOutline, cashOutline, businessOutline, chatbubbleOutline, documentTextOutline });
+  }
+
+  ngOnInit() {
+    this.userName = 'Dr. ' + (sessionStorage.getItem('empleado') || 'Usuario');
+    this.updateActiveItem();
+
+    // Subscribe to router events to keep the menu in sync
+    this.router.events.subscribe(() => {
+      this.updateActiveItem();
+    });
+  }
+
+  updateActiveItem() {
+    const currentUrl = this.router.url;
+    this.menuItems.forEach(item => {
+      // Check if the current URL matches the item path or starts with it (for child routes)
+      // Special case for dashboard ('/home') to avoid matching everything starting with '/home'
+      if (item.path === '/home') {
+        item.active = currentUrl === '/home' || currentUrl === '/home/dashboard';
+      } else {
+        item.active = currentUrl.startsWith(item.path);
+      }
+    });
   }
 
   toggleMobileMenu() {

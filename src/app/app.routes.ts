@@ -1,12 +1,12 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './Modulos/login/Guarda/auth.guard';
+import { authGuard } from './modulos/login/guarda/auth.guard';
 
-import { noAuthGuard } from './Modulos/login/Guarda/no-auth.guard';
+import { noAuthGuard } from './modulos/login/guarda/no-auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
-    loadComponent: () => import('./Modulos/login/Datos/login.page').then((m) => m.LoginPage),
+    loadComponent: () => import('./modulos/login/datos/login.page').then((m) => m.LoginPage),
     canActivate: [noAuthGuard],
   },
   {
@@ -16,11 +16,11 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./Modulos/Dashboard/Datos/dashboard.page').then((m) => m.DashboardPage),
+        loadComponent: () => import('./modulos/dashboard/datos/dashboard.page').then((m) => m.DashboardPage),
       },
       {
         path: 'clientes',
-        loadComponent: () => import('./Modulos/Clientes/Datos/clientes.page').then((m) => m.ClientesPage),
+        loadComponent: () => import('./modulos/clientes/datos/clientes.page').then((m) => m.ClientesPage),
       },
     ],
   },
@@ -28,5 +28,9 @@ export const routes: Routes = [
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./modulos/registro/registro.page').then( m => m.RegistroPage)
   },
 ];

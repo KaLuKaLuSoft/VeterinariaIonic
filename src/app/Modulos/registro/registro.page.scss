@@ -1,0 +1,354 @@
+// Variables based on image
+$primary-color: #55a89e; // Teal/Green
+$secondary-color: #e6556b; // Pink/Red
+$text-color: #333;
+$light-gray: #f4f4f4;
+
+// General Page Styles
+ion-content {
+    --background: #f0f2f5;
+}
+
+.full-height {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.banner-col {
+    display: none !important;
+}
+
+// Stepper Styles
+.stepper-header {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 30px;
+    padding-top: 20px;
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        width: 150px;
+
+        .step-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .step-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .step-indicator {
+            width: 60px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+        }
+
+        &.active {
+            .step-title {
+                color: #000;
+                font-weight: 700;
+            }
+
+            .step-indicator {
+                background: $primary-color;
+            }
+        }
+
+        &.completed {
+            .step-title {
+                color: $primary-color;
+            }
+
+            .step-indicator {
+                background: $primary-color;
+            }
+        }
+    }
+}
+
+.form-col {
+    display: flex;
+    justify-content: center;
+    background: transparent;
+
+    .form-container {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        padding: 40px;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+.page-title {
+    text-align: center;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+// Input Styles
+.input-group {
+    margin-bottom: 20px;
+
+    ion-label {
+        font-size: 0.95rem;
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: block;
+
+        .required {
+            color: $secondary-color;
+        }
+    }
+}
+
+.custom-input {
+    --background: #fff;
+    --border-radius: 30px;
+    --padding-start: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 30px;
+    height: 54px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+
+    &.item-has-focus {
+        border-color: $primary-color;
+    }
+
+    ion-icon[slot="start"] {
+        display: none !important;
+    }
+
+    ion-input,
+    ion-select {
+        --padding-start: 0px;
+        --placeholder-color: #999;
+        color: #333 !important;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .password-toggle {
+        background: transparent;
+        border: none;
+        width: 40px;
+        padding: 0;
+        margin-right: 10px;
+        color: #999;
+    }
+}
+
+// Custom Picker (Country and City)
+.country-picker-wrapper,
+.city-picker-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.country-picker-trigger,
+.city-picker-trigger {
+    display: flex;
+    align-items: center;
+    height: 54px;
+    border: 1px solid #e0e0e0;
+    border-radius: 30px;
+    background: #fff !important;
+    cursor: pointer;
+    overflow: hidden;
+
+    .selected-item {
+        padding-left: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+
+        span,
+        .item-info {
+            color: #333333 !important;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .flag-img-selected {
+            width: 26px;
+            height: 18px;
+            object-fit: cover;
+            border-radius: 2px;
+            border: 1px solid #ddd;
+        }
+    }
+
+    .placeholder-text {
+        padding-left: 20px;
+        color: #999999 !important;
+        font-size: 0.95rem;
+    }
+
+    .picker-actions {
+        padding-right: 15px;
+
+        ion-icon {
+            color: #999 !important;
+        }
+    }
+}
+
+.country-dropdown,
+.city-dropdown {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+    animation: fadeInDown 0.15s ease-out;
+
+    .search-box {
+        padding: 10px;
+        background: #fff;
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            color: #333 !important;
+        }
+    }
+
+    .item-list {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .item-option {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        gap: 12px;
+        cursor: pointer;
+        background: #fff !important;
+
+        &:hover {
+            background: #f0f7f6 !important;
+        }
+
+        .item-name,
+        .item-code {
+            color: #333333 !important;
+            font-weight: 500;
+        }
+
+        .flag-img {
+            width: 24px;
+            height: 16px;
+            object-fit: cover;
+            border-radius: 2px;
+        }
+    }
+}
+
+.error-msg {
+    color: $secondary-color;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+.terms-check {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+
+    ion-checkbox {
+        --size: 20px;
+        margin-right: 10px;
+        --checkbox-background-checked: #{$primary-color};
+    }
+
+    .terms-text {
+        font-size: 0.85rem;
+        color: #555;
+    }
+}
+
+.submit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 20px;
+
+    .submit-btn {
+        --background: #55a89e;
+        --border-radius: 25px;
+        --color: #fff;
+        height: 48px;
+        width: 180px;
+        font-weight: 600;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .submit-bar {
+        flex-direction: column-reverse;
+
+        .submit-btn {
+            width: 100%;
+        }
+    }
+}

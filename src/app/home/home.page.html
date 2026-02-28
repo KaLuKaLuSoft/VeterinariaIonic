@@ -21,7 +21,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="user-info">Logged in as: {{ userName }}</div>
+      <div class="user-info">Bienvenido: {{ userName }}</div>
       <button class="logout-btn" (click)="logout()">
         <ion-icon name="log-out-outline"></ion-icon>
         Cerrar Sesión
@@ -52,7 +52,7 @@
 
     <!-- Content area where modules load -->
     <div class="dynamic-content">
-      <ion-router-outlet></ion-router-outlet>
+      <ion-router-outlet [animated]="false"></ion-router-outlet>
     </div>
   </div>
 </div>

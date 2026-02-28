@@ -1,0 +1,245 @@
+<ion-content>
+  <div class="full-height ion-padding">
+
+    <div style="width: 100%; max-width: 900px;">
+      <div class="stepper-header">
+        <div class="step-item" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+          <span class="step-label">Paso 1</span>
+          <span class="step-title">Creación de cuenta</span>
+          <div class="step-indicator"></div>
+        </div>
+        <div class="step-item" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+          <span class="step-label">Paso 2</span>
+          <span class="step-title">Activación de veterinaria</span>
+          <div class="step-indicator"></div>
+        </div>
+        <div class="step-item" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+          <span class="step-label">Paso 3</span>
+          <span class="step-title">Exploración sistema</span>
+          <div class="step-indicator"></div>
+        </div>
+      </div>
+
+      <div class="form-col">
+        <div class="form-container">
+
+          <div *ngIf="currentStep === 1">
+
+            <h1 class="page-title">CREA TU CUENTA</h1>
+            <p class="subtitle">Ingresa tus datos personales para comenzar:</p>
+
+            <form [formGroup]="registroForm">
+
+              <div class="input-group">
+                <ion-label>Tu nombre completo <span class="required">*</span></ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="person-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="nombre" placeholder="Nombre completo" type="text"></ion-input>
+                </ion-item>
+                <div class="error-msg"
+                  *ngIf="registroForm.get('nombre')?.touched && registroForm.get('nombre')?.invalid">
+                  Nombre es requerido
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label>Tu correo electrónico <span class="required">*</span></ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="mail-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="email" placeholder="Correo electrónico" type="email"></ion-input>
+                </ion-item>
+                <div class="error-msg" *ngIf="registroForm.get('email')?.touched && registroForm.get('email')?.invalid">
+                  Correo válido es requerido
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label>Tu contraseña <span class="required">*</span></ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="password" [type]="passwordType" placeholder="Contraseña"></ion-input>
+                  <ion-icon [name]="passwordIcon" slot="end" (click)="togglePassword()"
+                    class="password-toggle"></ion-icon>
+                </ion-item>
+                <div class="error-msg"
+                  *ngIf="registroForm.get('password')?.touched && registroForm.get('password')?.invalid">
+                  Contraseña es requerida (min 6 caracteres)
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label>País <span class="required">*</span></ion-label>
+                <div class="country-picker-wrapper">
+                  <div class="country-picker-trigger custom-input" (click)="toggleDropdown()">
+                    <div class="selected-item" *ngIf="paisSeleccionado">
+                      <img [src]="getFlagUrl(paisSeleccionado.nombre)" class="flag-img-selected" alt="flag">
+                      <span class="item-info">{{ paisSeleccionado.codigo }} {{ paisSeleccionado.nombre }}</span>
+                    </div>
+                    <span class="placeholder-text" *ngIf="!paisSeleccionado">Selecciona País</span>
+                    <div class="picker-actions">
+                      <ion-icon name="close-outline" class="clear-icon" *ngIf="paisSeleccionado"
+                        (click)="$event.stopPropagation(); paisSeleccionado = null; registroForm.patchValue({pais: ''})">
+                      </ion-icon>
+                      <ion-icon name="caret-up-outline" *ngIf="dropdownAbierto"></ion-icon>
+                      <ion-icon name="caret-down-outline" *ngIf="!dropdownAbierto"></ion-icon>
+                    </div>
+                  </div>
+
+                  <div class="country-dropdown" *ngIf="dropdownAbierto">
+                    <div class="search-box">
+                      <input type="text" [(ngModel)]="searchText" [ngModelOptions]="{standalone: true}"
+                        (ngModelChange)="filtrarPaises()" placeholder="Buscar país..." autofocus>
+                    </div>
+                    <div class="item-list">
+                      <div class="item-option" *ngFor="let pais of paisesFiltrados" (click)="seleccionarPais(pais)"
+                        [class.selected]="paisSeleccionado?.id === pais.id">
+                        <img [src]="getFlagUrl(pais.nombre)" class="flag-img" alt="flag">
+                        <span class="item-code">{{ pais.codigo }}</span>
+                        <span class="item-name">{{ pais.nombre }}</span>
+                      </div>
+                      <div class="no-results" *ngIf="paisesFiltrados.length === 0">
+                        No se encontraron países
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="error-msg" *ngIf="registroForm.get('pais')?.touched && registroForm.get('pais')?.invalid">
+                  País es requerido
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label>Tu número de celular <span class="required">*</span></ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="call-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="celular" placeholder="Número Celular" type="tel"></ion-input>
+                </ion-item>
+                <div class="error-msg"
+                  *ngIf="registroForm.get('celular')?.touched && registroForm.get('celular')?.invalid">
+                  Número válido es requerido
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label class="optional-label">¿Tienes un código de Referido? Ingrésalo</ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="ticket-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="referido" placeholder="Código referido (opcional)"
+                    type="text"></ion-input>
+                </ion-item>
+              </div>
+
+              <div class="terms-check">
+                <ion-checkbox formControlName="terminos" mode="md"></ion-checkbox>
+                <ion-label class="terms-text">
+                  Acepto los <a href="#">Términos del Servicio</a> y <a href="#">Políticas de Privacidad.</a>
+                </ion-label>
+              </div>
+              <div class="error-msg"
+                *ngIf="registroForm.get('terminos')?.touched && registroForm.get('terminos')?.invalid">
+                Debes aceptar los términos
+              </div>
+
+              <div class="submit-bar">
+                <ion-button (click)="nextStep()" class="submit-btn" shape="round">
+                  Continuar
+                </ion-button>
+                <p class="required-note">Los campos marcados con asterisco (<span>*</span>) son obligatorios</p>
+              </div>
+
+            </form>
+          </div>
+
+          <div *ngIf="currentStep === 2">
+            <h1 class="page-title">ACTIVA TU CUENTA</h1>
+            <p class="subtitle">Confirma la siguiente información para configurar tu cuenta:</p>
+
+            <form [formGroup]="registroForm">
+              <div class="input-group">
+                <ion-label>Nombre de tu veterinaria <span class="required">*</span></ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="medkit-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="nombreVeterinaria" placeholder="Nombre veterinaria"
+                    type="text"></ion-input>
+                </ion-item>
+                <div class="error-msg"
+                  *ngIf="registroForm.get('nombreVeterinaria')?.touched && registroForm.get('nombreVeterinaria')?.invalid">
+                  Nombre de veterinaria es requerido
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label>Ciudad donde opera <span class="required">*</span></ion-label>
+                <div class="city-picker-wrapper">
+                  <div class="city-picker-trigger custom-input" (click)="toggleDropdownCiudad()">
+                    <div class="selected-item" *ngIf="ciudadSeleccionada">
+                      <span class="item-info">{{ ciudadSeleccionada.nombreCiudad }}</span>
+                    </div>
+                    <span class="placeholder-text" *ngIf="!ciudadSeleccionada">Selecciona la ciudad</span>
+                    <div class="picker-actions">
+                      <ion-icon name="close-outline" class="clear-icon" *ngIf="ciudadSeleccionada"
+                        (click)="$event.stopPropagation(); ciudadSeleccionada = null; registroForm.patchValue({ciudad: ''})">
+                      </ion-icon>
+                      <ion-icon name="caret-up-outline" *ngIf="dropdownCiudadAbierto"></ion-icon>
+                      <ion-icon name="caret-down-outline" *ngIf="!dropdownCiudadAbierto"></ion-icon>
+                    </div>
+                  </div>
+
+                  <div class="city-dropdown" *ngIf="dropdownCiudadAbierto">
+                    <div class="search-box">
+                      <input type="text" [(ngModel)]="searchTextCiudad" [ngModelOptions]="{standalone: true}"
+                        (ngModelChange)="filtrarCiudades()" placeholder="Buscar ciudad..." autofocus>
+                    </div>
+                    <div class="item-list">
+                      <div class="item-option" *ngFor="let ciudad of ciudadesFiltradas"
+                        (click)="seleccionarCiudad(ciudad)" [class.selected]="ciudadSeleccionada?.id === ciudad.id">
+                        <span class="item-name">{{ ciudad.nombreCiudad }}</span>
+                      </div>
+                      <div class="no-results" *ngIf="ciudadesFiltradas.length === 0">
+                        No se encontraron ciudades
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="error-msg"
+                  *ngIf="registroForm.get('ciudad')?.touched && registroForm.get('ciudad')?.invalid">
+                  Ciudad es requerida
+                </div>
+              </div>
+
+              <div class="input-group">
+                <ion-label>Número de empleados</ion-label>
+                <ion-item lines="none" class="custom-input">
+                  <ion-icon name="people-outline" slot="start"></ion-icon>
+                  <ion-input formControlName="empleados" placeholder="Cantidad empleados" type="number"></ion-input>
+                </ion-item>
+                <div class="error-msg"
+                  *ngIf="registroForm.get('empleados')?.touched && registroForm.get('empleados')?.invalid">
+                  Número de empleados es requerido
+                </div>
+              </div>
+
+              <div class="submit-bar">
+                <ion-button (click)="nextStep()" class="submit-btn" shape="round">
+                  Continuar
+                </ion-button>
+                <p class="required-note">Los campos marcados con asterisco (<span>*</span>) son obligatorios</p>
+              </div>
+            </form>
+          </div>
+
+          <div *ngIf="currentStep === 3" class="confirmation-container">
+            <ion-icon name="checkmark-circle" class="confirm-icon"></ion-icon>
+            <h2>¡Cuenta Creada!</h2>
+            <p>Hemos enviado un correo de confirmación. Por favor revisa tu bandeja de entrada.</p>
+            <ion-button expand="block" routerLink="/login" class="submit-btn">
+              Ir al Login
+            </ion-button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

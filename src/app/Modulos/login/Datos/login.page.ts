@@ -5,8 +5,8 @@ import { Router } from '@angular/router';
 import { ToastController, NavController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { eyeOutline, eyeOffOutline, paw, personOutline, lockClosedOutline } from 'ionicons/icons';
-import { LoginService } from '../Servicios/login.service';
-import { SharedDataService } from '../Servicios/Compartido/shared-data.service';
+import { LoginService } from '../servicios/login.service';
+import { SharedDataService } from '../servicios/compartido/shared-data.service';
 import {
     IonContent,
     IonInput,
@@ -88,16 +88,22 @@ export class LoginPage implements OnInit {
                 const nombreSucursal = response.userData.sucursal.nombreSucursal;
                 const roles = response.userData.roles;
                 const idSucursal = response.userData.sucursal.id;
+                const empleado = response.userData.empleado;
+                const idEmpresa = response.userData.idEmpresa;
+                const empresa = response.userData.empresa;
                 //const idcaja = response.userData.caja.id;
 
-                this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal);
-                //this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal, idcaja);
+                this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal, empleado, idEmpresa, empresa);
+                //this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal, idcaja, empleado);
 
                 sessionStorage.setItem('id', id.toString());
                 sessionStorage.setItem('usuario', usuario);
                 sessionStorage.setItem('nombreSucursal', nombreSucursal);
                 sessionStorage.setItem('roles', roles);
                 sessionStorage.setItem('idSucursal', idSucursal.toString());
+                sessionStorage.setItem('empleado', empleado);
+                sessionStorage.setItem("idEmpresa", idEmpresa.toString());
+                sessionStorage.setItem("empresa", empresa);
                 //sessionStorage.setItem('idcaja', idcaja.toString());
 
                 // Manejar la funcionalidad "Recordarme"
@@ -137,12 +143,23 @@ export class LoginPage implements OnInit {
     }
 
     private handleError(error: any) {
-        const errorMessage = error.message || 'Error desconocido';
-        if (errorMessage === "El usuario está inactivo. Contacte al administrador.") {
-            this.showSnackBar('Usuario desactivado. Contacte al administrador.');
+        const serverMessage = error?.error?.Message ?? error?.error?.message ?? error?.message ?? 'Error desconocido';
+
+        if (error?.status === 0) {
+            this.showSnackBar('No se puede conectar con el servidor. Verifique su conexión o intente más tarde.');
+        } else if (error?.status === 500) {
+            this.showSnackBar('Error interno del servidor. Por favor, intente más tarde.');
+        } else if (error?.status === 403 || /bloque|inactivo/i.test(serverMessage)) {
+            // Mensaje para usuario bloqueado / inactivo
+            this.showSnackBar('Usuario bloqueado. Póngase en contacto con el administrador.');
+        } else if (error?.status === 401 || /usuario o contraseña/i.test(serverMessage)) {
+            // Mensaje para credenciales inválidas
+            this.showSnackBar(serverMessage || 'Usuario o Contraseña Incorrectos.');
         } else {
-            this.showSnackBar('Usuario o Contraseña Incorrectos.');
+            // Otros errores
+            this.showSnackBar(serverMessage);
         }
+
         localStorage.setItem('authenticated', 'false');
     }
 
