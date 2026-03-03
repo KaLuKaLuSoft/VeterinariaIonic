@@ -91,9 +91,10 @@ export class LoginPage implements OnInit {
                 const empleado = response.userData.empleado;
                 const idEmpresa = response.userData.idEmpresa;
                 const empresa = response.userData.empresa;
+                const idPais = response.userData.idPais;
                 //const idcaja = response.userData.caja.id;
 
-                this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal, empleado, idEmpresa, empresa);
+                this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal, empleado, idEmpresa, empresa, idPais);
                 //this.sharedDataService.setUserData(id, usuario, nombreSucursal, roles, idSucursal, idcaja, empleado);
 
                 sessionStorage.setItem('id', id.toString());
@@ -104,6 +105,7 @@ export class LoginPage implements OnInit {
                 sessionStorage.setItem('empleado', empleado);
                 sessionStorage.setItem("idEmpresa", idEmpresa.toString());
                 sessionStorage.setItem("empresa", empresa);
+                sessionStorage.setItem("idPais", idPais.toString());
                 //sessionStorage.setItem('idcaja', idcaja.toString());
 
                 // Manejar la funcionalidad "Recordarme"
@@ -112,6 +114,9 @@ export class LoginPage implements OnInit {
                 } else {
                     localStorage.removeItem('rememberedUser');
                 }
+
+                // Iniciar refresh automático del token
+                this.loginService.scheduleRefresh();
 
                 // Redirige a la URL original o a 'home' si no hay ninguna almacenada, y reemplaza la URL en el historial
                 const redirectUrl = sessionStorage.getItem('redirectUrl') || '/home';

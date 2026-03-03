@@ -8,19 +8,18 @@
             </ion-button>
         </div>
 
-        <!-- Search and Filters -->
         <div class="search-container">
             <div class="search-input-wrapper">
                 <ion-icon name="search-outline"></ion-icon>
-                <input type="text" placeholder="Buscar por nombre, email o código..." [(ngModel)]="searchTerm" />
+                <input type="text" placeholder="Buscar por nombre, email, contacto o código..." [(ngModel)]="searchTerm"
+                    (ngModelChange)="currentPage = 1" />
             </div>
-            <button class="filter-btn">
+            <button class="filter-btn" (click)="abrirFiltros()" [class.active-filter]="selectedFilterTipo">
                 <ion-icon name="filter-outline"></ion-icon>
-                Filtros
+                {{ selectedFilterTipo ? 'Filtro: ' + selectedFilterTipo : 'Filtros' }}
             </button>
         </div>
 
-        <!-- Clients Table -->
         <div class="table-container">
             <table class="custom-table">
                 <thead>
@@ -29,44 +28,80 @@
                         <th>Cliente</th>
                         <th>Contacto</th>
                         <th>Dirección</th>
-                        <th>Tipo</th>
                         <th>Acceso</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let cliente of clientes">
-                        <td class="code-cell">{{ cliente.codigo_cliente }}</td>
+                    <tr *ngIf="clientesFiltrados.length === 0 && !isLoading">
+                        <td colspan="6" class="ion-text-center ion-padding">
+                            <p *ngIf="searchTerm">No se encontraron clientes que coincidan con "{{ searchTerm }}".</p>
+                            <p *ngIf="!searchTerm">No se encontraron clientes registrados.</p>
+                        </td>
+                    </tr>
+
+                    <tr *ngFor="let cliente of clientesFiltrados | paginate:itemsPerPage:currentPage" class="fade-in">
+                        <td class="code-cell">{{ cliente.codCliente }}</td>
                         <td>
                             <div class="client-info">
-                                <span class="name">{{ cliente.nombre }} {{ cliente.apellido }}</span>
+                                <span class="name">{{ cliente.nombreCliente }}</span>
                                 <span class="email">{{ cliente.email }}</span>
                             </div>
                         </td>
-                        <td>{{ cliente.telefono_principal }}</td>
-                        <td>{{ cliente.direccion }}</td>
+                        <td>{{ cliente.celular }}</td>
+                        <td>{{ cliente.direccionCliente }}</td>
                         <td>
-                            <span class="status-badge" [class.vip]="cliente.tipo_cliente === 'VIP'">
-                                {{ cliente.tipo_cliente }}
+                            <span class="status-badge" [class.vip]="cliente.tipoCliente === 'VIP'">
+                                {{ cliente.tipoCliente }}
                             </span>
                         </td>
                         <td class="actions-cell">
-                            <button class="action-btn view" (click)="openDetail(cliente)" title="Ver Detalle">
-                                <ion-icon name="information-circle-outline"></ion-icon>
-                            </button>
-                            <button class="action-btn edit" (click)="setOpen(true, true, cliente)" title="Editar">
-                                <ion-icon name="pencil-outline"></ion-icon>
-                            </button>
-                            <button class="action-btn delete" (click)="onDelete(cliente)" title="Eliminar">
-                                <ion-icon name="trash-outline"></ion-icon>
-                            </button>
+                            <div class="actions-wrapper">
+                                <button class="action-btn view" (click)="openDetail(cliente)" title="Ver Detalle">
+                                    <ion-icon name="information-circle-outline"></ion-icon>
+                                </button>
+                                <button class="action-btn edit" (click)="setOpen(true, true, cliente)" title="Editar">
+                                    <ion-icon name="pencil-outline"></ion-icon>
+                                </button>
+                                <button class="action-btn delete" (click)="onDelete(cliente)" title="Eliminar">
+                                    <ion-icon name="trash-outline"></ion-icon>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <div class="pagination-container" *ngIf="clientesFiltrados.length > 0">
+            <div class="pagination-info">
+                <span>Mostrar</span>
+                <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1">
+                    <option [value]="5">5</option>
+                    <option [value]="10">10</option>
+                    <option [value]="20">20</option>
+                </select>
+                <span>registros</span>
+            </div>
+
+            <div class="pagination-buttons">
+                <button [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">
+                    <ion-icon name="chevron-back-outline"></ion-icon>
+                </button>
+                <span class="page-indicator">Página {{ currentPage }}</span>
+                <button [disabled]="(clientesFiltrados | paginate:itemsPerPage:currentPage+1).length === 0"
+                    (click)="currentPage = currentPage + 1">
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+
+        <div class="custom-bottom-snackbar" *ngIf="isLoading">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <span>Actualizando clientes...</span>
+        </div>
     </div>
 
-    <!-- Add Client Modal -->
     <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)" class="client-modal">
         <ng-template>
             <ion-header class="ion-no-border">
@@ -83,31 +118,15 @@
             <ion-content class="ion-padding">
                 <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="modal-form">
                     <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label>Código Interno (Opcional)</label>
+                        <div class="form-group">
+                            <label>Nombre Completo *</label>
                             <div class="input-wrapper">
-                                <ion-icon name="document-text-outline"></ion-icon>
-                                <input type="text" formControlName="codigo_cliente" placeholder="Ej: CLI-100">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <input type="text" formControlName="nombreCliente" placeholder="Ej: Juan Pérez">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label>Nombres *</label>
-                            <div class="input-wrapper">
-                                <ion-icon name="person-outline"></ion-icon>
-                                <input type="text" formControlName="nombre" placeholder="Nombre completo">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Apellidos *</label>
-                            <div class="input-wrapper">
-                                <ion-icon name="person-outline"></ion-icon>
-                                <input type="text" formControlName="apellido" placeholder="Apellido paterno/materno">
-                            </div>
-                        </div>
-
-                        <div class="form-group full-width">
                             <label>Email *</label>
                             <div class="input-wrapper">
                                 <ion-icon name="mail-outline"></ion-icon>
@@ -116,26 +135,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Teléfono Principal</label>
+                            <label>Celular</label>
                             <div class="input-wrapper">
                                 <ion-icon name="call-outline"></ion-icon>
-                                <input type="tel" formControlName="telefono_principal" placeholder="+X XXX XXX XXX">
+                                <input type="tel" formControlName="celular" placeholder="+X XXX XXX XXX">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label>Teléfono Secundario</label>
-                            <div class="input-wrapper">
-                                <ion-icon name="call-outline"></ion-icon>
-                                <input type="tel" formControlName="telefono_secundario" placeholder="Opcional">
-                            </div>
-                        </div>
-
-                        <div class="form-group full-width">
                             <label>Dirección</label>
                             <div class="input-wrapper">
                                 <ion-icon name="location-outline"></ion-icon>
-                                <input type="text" formControlName="direccion" placeholder="Calle, Nro, Referencia">
+                                <input type="text" formControlName="direccionCliente"
+                                    placeholder="Calle, Nro, Referencia">
                             </div>
                         </div>
 
@@ -143,10 +155,10 @@
                             <label>Tipo de Cliente</label>
                             <div class="select-wrapper">
                                 <ion-icon name="filter-outline"></ion-icon>
-                                <select formControlName="id_tipo_cliente">
-                                    <option [value]="1">Regular</option>
-                                    <option [value]="2">VIP</option>
-                                    <option [value]="3">Corporativo</option>
+                                <select formControlName="idCliente">
+                                    <option [value]="null" disabled hidden>Seleccionar tipo de cliente</option>
+                                    <option *ngFor="let tipo of tiposClientes" [value]="tipo.id">{{
+                                        tipo.nombreTipo }}</option>
                                 </select>
                             </div>
                         </div>
@@ -155,16 +167,21 @@
                             <label>Ciudad</label>
                             <div class="select-wrapper">
                                 <ion-icon name="location-outline"></ion-icon>
-                                <select formControlName="id_ciudad">
-                                    <option [value]="null">Seleccionar ciudad</option>
-                                    <option [value]="1">Santa Cruz</option>
-                                    <option [value]="2">La Paz</option>
-                                    <option [value]="3">Cochabamba</option>
+                                <select formControlName="idCiudad" (change)="onCiudadChange($event)">
+                                    <option [value]="null" disabled hidden>Seleccionar ciudad</option>
+                                    <option *ngFor="let ciudad of ciudades" [value]="ciudad.id">{{ ciudad.nombreCiudad
+                                        }}</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="form-group full-width">
+                        <div class="form-group"
+                            style="display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin-top: 5px;">
+                            <label style="margin-bottom: 0;">Cliente Activo</label>
+                            <ion-checkbox formControlName="activo" mode="ios"></ion-checkbox>
+                        </div>
+
+                        <div class="form-group">
                             <label>Observaciones</label>
                             <div class="input-wrapper textarea">
                                 <ion-icon name="document-text-outline"></ion-icon>
@@ -185,19 +202,18 @@
         </ng-template>
     </ion-modal>
 
-    <!-- Detail Client Modal -->
     <ion-modal [isOpen]="isDetailModalOpen" (didDismiss)="closeDetail()" class="client-detail-modal">
         <ng-template>
             <div class="detail-container">
                 <div class="detail-header">
                     <div class="client-profile">
                         <div class="avatar-circle">
-                            {{ selectedCliente?.nombre?.charAt(0) }}{{ selectedCliente?.apellido?.charAt(0) }}
+                            {{ selectedCliente?.nombreCliente?.charAt(0) }}
                         </div>
                         <div class="header-text">
-                            <h2>{{ selectedCliente?.nombre }} {{ selectedCliente?.apellido }}</h2>
-                            <span class="status-badge" [class.vip]="selectedCliente?.tipo_cliente === 'VIP'">
-                                {{ selectedCliente?.tipo_cliente }}
+                            <h2>{{ selectedCliente?.nombreCliente }}</h2>
+                            <span class="status-badge" [class.vip]="selectedCliente?.tipoCliente === 'VIP'">
+                                {{ selectedCliente?.tipoCliente }}
                             </span>
                         </div>
                     </div>
@@ -215,13 +231,13 @@
                             </h3>
                             <div class="info-item">
                                 <span class="label">Código de Cliente</span>
-                                <span class="value code">{{ selectedCliente?.codigo_cliente }}</span>
+                                <span class="value code">{{ selectedCliente?.codCliente }}</span>
                             </div>
                             <div class="info-item">
                                 <span class="label">Fecha de Registro</span>
                                 <span class="value">
                                     <ion-icon name="calendar-outline"></ion-icon>
-                                    22 Dic, 2025
+                                    {{ selectedCliente?.fecha_Registro | date:'dd MMM, yyyy' }}
                                 </span>
                             </div>
                         </div>
@@ -236,12 +252,8 @@
                                 <span class="value">{{ selectedCliente?.email }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">Teléfono Principal</span>
-                                <span class="value">{{ selectedCliente?.telefono_principal }}</span>
-                            </div>
-                            <div class="info-item" *ngIf="selectedCliente?.telefono_secundario">
-                                <span class="label">Teléfono Secundario</span>
-                                <span class="value">{{ selectedCliente?.telefono_secundario }}</span>
+                                <span class="label">Teléfono / Celular</span>
+                                <span class="value">{{ selectedCliente?.celular }}</span>
                             </div>
                         </div>
 
@@ -252,7 +264,7 @@
                             </h3>
                             <div class="info-item">
                                 <span class="label">Dirección Domiliciaria</span>
-                                <span class="value">{{ selectedCliente?.direccion || 'No especificada' }}</span>
+                                <span class="value">{{ selectedCliente?.direccionCliente || 'No especificada' }}</span>
                             </div>
                         </div>
 

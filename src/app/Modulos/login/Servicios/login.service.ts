@@ -22,8 +22,6 @@ export class LoginService {
   private apiUrlAuthenticate = 'https://localhost:7033/api/Login/Authenticate';
   private apiUrlRefreshToken = 'https://localhost:7033/api/Login/RefreshToken';
   private authenticationState = new BehaviorSubject<boolean>(this.isAuthenticated());
-  private apiUrlPost = 'http://localhost:7033/api/Login';
-  private apiUrlGet = 'http://localhost:7033/api/Login';
 
   private permittedMenus = new BehaviorSubject<number[]>([]);
   permittedMenus$ = this.permittedMenus.asObservable();
@@ -33,7 +31,7 @@ export class LoginService {
   private router = inject(Router); // Inyecta el Router para poder redirigir
   private navCtrl = inject(NavController);
 
-  constructor(private http: HttpClient,
+  constructor(
     private sharedDataService: SharedDataService,
     private loginmenusService: LoginmenusService,
   ) {
@@ -59,34 +57,7 @@ export class LoginService {
   getCurrentPermissions(): number[] {
     return this.permittedMenusSubject.value;
   }
-  getData(): Observable<any> {
-    let token = '';
 
-    // Verifica si el código está corriendo en el navegador antes de usar sessionStorage
-    if (this.isBrowser()) {
-      token = sessionStorage.getItem('token') || '';
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.get(this.apiUrlGet, { headers });
-  }
-
-  postData(data: any): Observable<any> {
-    let token = '';
-
-    if (this.isBrowser()) {
-      token = sessionStorage.getItem('token') || '';
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.post(this.apiUrlPost, data, { headers });
-  }
 
   // Método para el login de usuario
   loginUser(user: any): Promise<AuthResponse> {
@@ -132,7 +103,7 @@ export class LoginService {
     });
   }
 
-  private storeTokens(token: string, refreshToken: string): void {
+  public storeTokens(token: string, refreshToken: string): void {
     sessionStorage.setItem('token', token);
     sessionStorage.setItem('refreshToken', refreshToken);
   }
@@ -143,14 +114,18 @@ export class LoginService {
     const refreshToken = this.getRefreshToken();
 
     if (!token || !refreshToken) {
-      throw new Error('No se encontraron tokens');
+      // ❌ CRITICO: throw lanazba una excepción síncrona que el interceptor no puede capturar
+      // Ahora retornamos un Observable de error que sí puede manejar catchError
+      console.warn('refreshToken(): No hay tokens en sesión, no se puede hacer refresh.');
+      return throwError(() => new Error('No se encontraron tokens'));
     }
 
     const refreshData = {
-      tokens: token, // El campo esperado es "tokens"
-      refreshToken: refreshToken // Y "refreshToken"
+      token: token,         // 🐛 FIJO: El API espera 'token' (sin s) en el body del POST
+      refreshToken: refreshToken
     };
 
+    console.log('📡 Enviando refresh token al servidor...');
     return this.httpClient.post<any>(this.apiUrlRefreshToken, refreshData);
   }
 
@@ -188,6 +163,7 @@ export class LoginService {
     sessionStorage.removeItem('empleado');
     sessionStorage.removeItem('idEmpresa');
     sessionStorage.removeItem('empresa');
+    sessionStorage.removeItem('idPais');
     // Redirigir al usuario a la página de login
     this.navCtrl.navigateRoot(['/login'], { animated: false });
 
@@ -218,4 +194,61 @@ export class LoginService {
   private isBrowser(): boolean {
     return typeof window !== 'undefined';
   }
+  private refreshTimer?: any;
+
+  // Método para programar el refresco automático del token
+  public scheduleRefresh() {
+    const token = this.getAuthToken();
+    if (!token) {
+      console.warn('scheduleRefresh: No hay token, no se programa refresco.');
+      return;
+    }
+
+    try {
+      // Decodificar el JWT para leer el tiempo de expiración
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiresMs = payload.exp * 1000;
+      const nowMs = Date.now();
+      // Refrescar 30 segundos antes de que expire
+      const timeoutMs = expiresMs - nowMs - (30 * 1000);
+
+      // Cancelar cualquier timer anterior
+      if (this.refreshTimer) clearTimeout(this.refreshTimer);
+
+      if (timeoutMs > 0) {
+        const mins = Math.round(timeoutMs / 60000);
+        console.log(`🕐 Próximo refresh de token programado en ~${mins} minuto(s).`);
+        this.refreshTimer = setTimeout(() => {
+          this.refreshToken().subscribe({
+            next: (res: any) => {
+              console.log('✅ Token refrescado automáticamente en segundo plano.');
+              this.storeTokens(res.tokens, res.refreshToken);
+              this.scheduleRefresh(); // Programar el siguiente ciclo
+            },
+            error: (err: any) => {
+              console.error('❌ Error en refresh automático:', err);
+              // No hacer logout aquí — el interceptor manejará el 401 en la siguiente request
+              // Solo logeamos y dejamos que el token expire naturalmente
+            }
+          });
+        }, timeoutMs);
+      } else {
+        // Token ya expirado o a punto de expirar → refrescar inmediatamente
+        console.warn('⚡ Token expirado o por expirar inmediatamente, refrescando ahora...');
+        this.refreshToken().subscribe({
+          next: (res: any) => {
+            console.log('✅ Token refrescado inmediatamente.');
+            this.storeTokens(res.tokens, res.refreshToken);
+            this.scheduleRefresh(); // Programar siguiente ciclo con el token nuevo
+          },
+          error: (err: any) => {
+            console.error('❌ No se pudo refrescar el token inmediatamente:', err);
+          }
+        });
+      }
+    } catch (e) {
+      console.error('scheduleRefresh: Error al decodificar el token JWT.', e);
+    }
+  }
 }
+
