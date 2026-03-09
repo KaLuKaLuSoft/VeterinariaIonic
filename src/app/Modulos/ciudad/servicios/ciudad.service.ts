@@ -1,6 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map, catchError, of } from 'rxjs';
+
+interface ApiResponse<T> {
+    isSuccess: boolean;
+    result: T;
+    displayMessage: string;
+    errorMessages: string[] | null;
+}
 
 @Injectable({
     providedIn: 'root'
@@ -59,7 +66,13 @@ export class CiudadService {
         const url = idPais ? `${this.apiUrl}?idPais=${idPais}` : this.apiUrl;
         console.log('URL final de Ciudades:', url);
 
-        return this.http.get(url);
+        return this.http.get<ApiResponse<any>>(url).pipe(
+            map(response => response.result ?? []),
+            catchError(error => {
+                console.error('Error al obtener ciudades:', error);
+                return of([]);
+            })
+        );
     }
 
     /**

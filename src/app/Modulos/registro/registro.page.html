@@ -13,11 +13,6 @@
           <span class="step-title">Activación de veterinaria</span>
           <div class="step-indicator"></div>
         </div>
-        <div class="step-item" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
-          <span class="step-label">Paso 3</span>
-          <span class="step-title">Exploración sistema</span>
-          <div class="step-indicator"></div>
-        </div>
       </div>
 
       <div class="form-col">
@@ -34,7 +29,8 @@
                 <ion-label>Tu nombre completo <span class="required">*</span></ion-label>
                 <ion-item lines="none" class="custom-input">
                   <ion-icon name="person-outline" slot="start"></ion-icon>
-                  <ion-input formControlName="nombre" placeholder="Nombre completo" type="text"></ion-input>
+                  <ion-input #nombreInput formControlName="nombre" placeholder="Nombre completo"
+                    type="text"></ion-input>
                 </ion-item>
                 <div class="error-msg"
                   *ngIf="registroForm.get('nombre')?.touched && registroForm.get('nombre')?.invalid">
@@ -44,13 +40,25 @@
 
               <div class="input-group">
                 <ion-label>Tu correo electrónico <span class="required">*</span></ion-label>
+
                 <ion-item lines="none" class="custom-input">
                   <ion-icon name="mail-outline" slot="start"></ion-icon>
-                  <ion-input formControlName="email" placeholder="Correo electrónico" type="email"></ion-input>
+                  <ion-input formControlName="email" placeholder="Correo electrónico" type="email">
+                  </ion-input>
                 </ion-item>
-                <div class="error-msg" *ngIf="registroForm.get('email')?.touched && registroForm.get('email')?.invalid">
+
+                <!-- ERROR FORMATO -->
+                <div class="error-msg" *ngIf="registroForm.get('email')?.touched &&
+              registroForm.get('email')?.errors?.['email']">
                   Correo válido es requerido
                 </div>
+
+                <!-- ERROR CORREO EXISTENTE -->
+                <div class="error-msg" *ngIf="registroForm.get('email')?.hasError('emailExistente') &&
+              !registroForm.get('email')?.errors?.['email']">
+                  Este correo ya tiene cuenta. <a routerLink="/login" class="login-link">Iniciar sesión</a>
+                </div>
+
               </div>
 
               <div class="input-group">
@@ -70,7 +78,9 @@
               <div class="input-group">
                 <ion-label>País <span class="required">*</span></ion-label>
                 <div class="country-picker-wrapper">
-                  <div class="country-picker-trigger custom-input" (click)="toggleDropdown()">
+                  <div class="country-picker-trigger custom-input" tabindex="0" (focus)="toggleDropdown()"
+                    (click)="toggleDropdown()" (keydown.enter)="toggleDropdown()"
+                    (keydown.space)="$event.preventDefault(); toggleDropdown()">
                     <div class="selected-item" *ngIf="paisSeleccionado">
                       <img [src]="getFlagUrl(paisSeleccionado.nombre)" class="flag-img-selected" alt="flag">
                       <span class="item-info">{{ paisSeleccionado.codigo }} {{ paisSeleccionado.nombre }}</span>
@@ -87,12 +97,13 @@
 
                   <div class="country-dropdown" *ngIf="dropdownAbierto">
                     <div class="search-box">
-                      <input type="text" [(ngModel)]="searchText" [ngModelOptions]="{standalone: true}"
+                      <input #paisSearchInput type="text" [(ngModel)]="searchText" [ngModelOptions]="{standalone: true}"
                         (ngModelChange)="filtrarPaises()" placeholder="Buscar país..." autofocus>
                     </div>
                     <div class="item-list">
                       <div class="item-option" *ngFor="let pais of paisesFiltrados" (click)="seleccionarPais(pais)"
-                        [class.selected]="paisSeleccionado?.id === pais.id">
+                        [class.selected]="paisSeleccionado?.id === pais.id" tabindex="0"
+                        (keydown.enter)="seleccionarPais(pais)" (keydown.space)="seleccionarPais(pais)">
                         <img [src]="getFlagUrl(pais.nombre)" class="flag-img" alt="flag">
                         <span class="item-code">{{ pais.codigo }}</span>
                         <span class="item-name">{{ pais.nombre }}</span>
@@ -147,6 +158,10 @@
                 <p class="required-note">Los campos marcados con asterisco (<span>*</span>) son obligatorios</p>
               </div>
 
+              <div class="login-redirect">
+                <p>¿Ya tienes una cuenta? <a routerLink="/login" class="login-link">Iniciar sesión</a></p>
+              </div>
+
             </form>
           </div>
 
@@ -171,7 +186,9 @@
               <div class="input-group">
                 <ion-label>Ciudad donde opera <span class="required">*</span></ion-label>
                 <div class="city-picker-wrapper">
-                  <div class="city-picker-trigger custom-input" (click)="toggleDropdownCiudad()">
+                  <div class="city-picker-trigger custom-input" tabindex="0" (focus)="toggleDropdownCiudad()"
+                    (click)="toggleDropdownCiudad()" (keydown.enter)="toggleDropdownCiudad()"
+                    (keydown.space)="$event.preventDefault(); toggleDropdownCiudad()">
                     <div class="selected-item" *ngIf="ciudadSeleccionada">
                       <span class="item-info">{{ ciudadSeleccionada.nombreCiudad }}</span>
                     </div>
@@ -187,12 +204,15 @@
 
                   <div class="city-dropdown" *ngIf="dropdownCiudadAbierto">
                     <div class="search-box">
-                      <input type="text" [(ngModel)]="searchTextCiudad" [ngModelOptions]="{standalone: true}"
-                        (ngModelChange)="filtrarCiudades()" placeholder="Buscar ciudad..." autofocus>
+                      <input #ciudadSearchInput type="text" [(ngModel)]="searchTextCiudad"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="filtrarCiudades()"
+                        placeholder="Buscar ciudad..." autofocus>
                     </div>
                     <div class="item-list">
                       <div class="item-option" *ngFor="let ciudad of ciudadesFiltradas"
-                        (click)="seleccionarCiudad(ciudad)" [class.selected]="ciudadSeleccionada?.id === ciudad.id">
+                        (click)="seleccionarCiudad(ciudad)" [class.selected]="ciudadSeleccionada?.id === ciudad.id"
+                        tabindex="0" (keydown.enter)="seleccionarCiudad(ciudad)"
+                        (keydown.space)="seleccionarCiudad(ciudad)">
                         <span class="item-name">{{ ciudad.nombreCiudad }}</span>
                       </div>
                       <div class="no-results" *ngIf="ciudadesFiltradas.length === 0">
@@ -221,9 +241,13 @@
 
               <div class="submit-bar">
                 <ion-button (click)="nextStep()" class="submit-btn" shape="round">
-                  Continuar
+                  Registrar
                 </ion-button>
                 <p class="required-note">Los campos marcados con asterisco (<span>*</span>) son obligatorios</p>
+              </div>
+
+              <div class="login-redirect">
+                <p>¿Ya tienes una cuenta? <a routerLink="/login" class="login-link">Iniciar sesión</a></p>
               </div>
             </form>
           </div>

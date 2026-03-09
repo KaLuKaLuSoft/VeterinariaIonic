@@ -1,12 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError, of, map } from 'rxjs';
 
 export interface Ciudad {
     id: number;
     nombreCiudad: string;
     idPais: number;
     activo: boolean;
+    nombrePaises?: string;
+    fecha_Alta?: string;
+    fecha_Modificacion?: string | null;
+}
+
+interface ApiResponse<T> {
+    isSuccess: boolean;
+    result: T;
+    displayMessage: string;
+    errorMessages: string[] | null;
 }
 
 @Injectable({
@@ -18,9 +28,12 @@ export class CiudadService {
 
     constructor(private http: HttpClient) { }
 
-    getCiudades(): Observable<Ciudad[]> {
-        return this.http.get<Ciudad[]>(this.apiUrl).pipe(
-            catchError(() => of([]))
-        );
+    getCiudadesPorPais(idPais: number): Observable<Ciudad[]> {
+        return this.http
+            .get<ApiResponse<Ciudad[]>>(`${this.apiUrl}?idPais=${idPais}`)
+            .pipe(
+                map(response => response.result ?? []),
+                catchError(() => of([]))
+            );
     }
 }

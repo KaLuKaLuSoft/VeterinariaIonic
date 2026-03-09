@@ -1,6 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map, of, catchError } from 'rxjs';
+
+interface ApiResponse<T> {
+    isSuccess: boolean;
+    result: T;
+}
 
 @Injectable({
     providedIn: 'root'

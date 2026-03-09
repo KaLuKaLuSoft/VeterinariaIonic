@@ -1,11 +1,16 @@
 import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, IonInput } from '@ionic/angular';
 import { PaisService, Pais } from './services/pais.service';
 import { CiudadService, Ciudad } from './services/ciudad.service';
 import { addIcons } from 'ionicons';
 import { personOutline, mailOutline, lockClosedOutline, eyeOutline, eyeOffOutline, chevronDownOutline, businessOutline, locationOutline, peopleOutline, ticketOutline, callOutline, mapOutline, caretDownOutline, closeOutline, caretUpOutline, medkitOutline } from 'ionicons/icons';
+import { RegistroService } from './services/registro.service';
+import { Router, RouterLink } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
+import { inject, ViewChild } from '@angular/core';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 const NOMBRE_A_ISO: { [key: string]: string } = {
   'Afganistán': 'af', 'Albania': 'al', 'Alemania': 'de', 'Andorra': 'ad', 'Angola': 'ao',
@@ -49,10 +54,19 @@ const NOMBRE_A_ISO: { [key: string]: string } = {
   templateUrl: './registro.page.html',
   styleUrls: ['./registro.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ReactiveFormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  providers: [ToastController]
+
 })
 
 export class RegistroPage implements OnInit {
+
+  @ViewChild('nombreInput') nombreInput?: IonInput;
+  @ViewChild('paisSearchInput') paisSearchInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('ciudadSearchInput') ciudadSearchInput?: ElementRef<HTMLInputElement>;
+
+  private toastController = inject(ToastController); // Inyectar
+
 
   registroForm: FormGroup;
   passwordType: string = 'password';
@@ -79,8 +93,9 @@ export class RegistroPage implements OnInit {
     private fb: FormBuilder,
     private paisService: PaisService,
     private ciudadService: CiudadService,
-    private elementRef: ElementRef
-
+    private elementRef: ElementRef,
+    private registroService: RegistroService,
+    private router: Router
   ) {
     addIcons({
       'person-outline': personOutline,
@@ -112,8 +127,14 @@ export class RegistroPage implements OnInit {
       // Step 2 Data
       nombreVeterinaria: ['', [Validators.required]],
       ciudad: ['', [Validators.required]],
-      empleados: ['', [Validators.required]]
+      empleados: ['', [Validators.required, Validators.pattern('^[0-9]+$')]]
     });
+  }
+
+  ionViewDidEnter() {
+    setTimeout(() => {
+      this.nombreInput?.setFocus();
+    }, 400);
   }
 
   ngOnInit() {
@@ -122,10 +143,30 @@ export class RegistroPage implements OnInit {
       this.paisesFiltrados = [...paises];
     });
 
-    this.ciudadService.getCiudades().subscribe(ciudades => {
-      this.ciudades = ciudades;
-      this.ciudadesFiltradas = [...ciudades];
-    });
+    this.registroForm.get('email')?.valueChanges
+      .pipe(
+        debounceTime(600),
+        distinctUntilChanged(),
+        switchMap(email => {
+
+          if (!email || this.registroForm.get('email')?.invalid) {
+            return [];
+          }
+
+          return this.registroService.verificarEmail(email);
+        })
+      )
+      .subscribe((existe: any) => {
+
+        if (existe === true) {
+
+          this.registroForm.get('email')?.setErrors({ emailExistente: true });
+
+          this.notificar('El correo ya se encuentra registrado', 'danger');
+        }
+
+      });
+
   }
 
   onCiudadChange(event: any) {
@@ -138,6 +179,9 @@ export class RegistroPage implements OnInit {
     if (this.dropdownCiudadAbierto) {
       this.searchTextCiudad = '';
       this.actualizarCiudadesDisponibles();
+      setTimeout(() => {
+        this.ciudadSearchInput?.nativeElement.focus();
+      }, 100);
     }
   }
 
@@ -171,10 +215,15 @@ export class RegistroPage implements OnInit {
   // Close dropdown when clicking outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
-    if (!this.elementRef.nativeElement.querySelector('.country-picker-wrapper')?.contains(event.target)) {
+    const path = event.composedPath();
+
+    const clickedInsideCountry = path.some(el => (el as HTMLElement).classList?.contains('country-picker-wrapper'));
+    if (!clickedInsideCountry) {
       this.dropdownAbierto = false;
     }
-    if (!this.elementRef.nativeElement.querySelector('.city-picker-wrapper')?.contains(event.target)) {
+
+    const clickedInsideCity = path.some(el => (el as HTMLElement).classList?.contains('city-picker-wrapper'));
+    if (!clickedInsideCity) {
       this.dropdownCiudadAbierto = false;
     }
   }
@@ -184,6 +233,9 @@ export class RegistroPage implements OnInit {
     if (this.dropdownAbierto) {
       this.searchText = '';
       this.paisesFiltrados = [...this.paises];
+      setTimeout(() => {
+        this.paisSearchInput?.nativeElement.focus();
+      }, 100);
     }
   }
 
@@ -200,21 +252,26 @@ export class RegistroPage implements OnInit {
   }
 
   seleccionarPais(pais: Pais) {
-    if (this.idPaisSeleccionado !== pais.id) {
-      // Si cambia el país, reseteamos la ciudad seleccionada
-      this.ciudadSeleccionada = null;
-      this.idCiudadSeleccionada = null;
-      this.registroForm.patchValue({ ciudad: '' });
-    }
-
     this.idPaisSeleccionado = pais.id;
     console.log('ID del país seleccionado:', this.idPaisSeleccionado);
+
     this.paisSeleccionado = pais;
     this.registroForm.patchValue({ pais: pais.id });
     this.registroForm.get('pais')?.markAsTouched();
+
     this.dropdownAbierto = false;
     this.searchText = '';
 
+    // limpiar ciudad previa
+    this.idCiudadSeleccionada = null;
+    this.ciudadSeleccionada = null
+    this.registroForm.patchValue({ ciudad: '' });
+
+    // 🔥 Cargar ciudades dinámicamente
+    this.ciudadService.getCiudadesPorPais(pais.id).subscribe(ciudades => {
+      this.ciudades = ciudades;
+      this.ciudadesFiltradas = [...ciudades];
+    });
     // Filtramos las ciudades inmediatamente para que el paso 2 ya esté listo
     this.actualizarCiudadesDisponibles();
   }
@@ -263,11 +320,64 @@ export class RegistroPage implements OnInit {
 
   onSubmit() {
     if (this.registroForm.valid) {
-      console.log('Formulario válido', this.registroForm.value);
-      // Simulate API call and move to Step 3
-      this.currentStep = 3;
+
+      if (!this.idPaisSeleccionado || !this.idCiudadSeleccionada) {
+        console.error('Debe seleccionar país y ciudad');
+        return;
+      }
+
+      const request = {
+        NombreComercial: this.registroForm.value.nombreVeterinaria,
+        NumeroTrabajadores: this.registroForm.value.empleados,
+        IdPais: Number(this.idPaisSeleccionado),
+        IdCiudad: Number(this.idCiudadSeleccionada),
+        NombreEmpleado: this.registroForm.value.nombre,
+        Celular: this.registroForm.value.celular,
+        Usuario: this.registroForm.value.email,
+        Contrasena: this.registroForm.value.password
+      };
+
+      this.registroService.registrar(request).subscribe({
+        next: (resp) => {
+
+          if (resp.isSuccess) {
+
+            console.log('Registrado correctamente');
+            this.notificar('Registrado correctamente', 'success');
+            this.router.navigate(['/login']);
+
+          } else {
+
+            const mensaje = resp.errorMessages?.length
+              ? resp.errorMessages[0]
+              : resp.displayMessage;
+
+            console.error('Error en registro:', mensaje);
+            this.notificar(mensaje, 'danger');
+          }
+
+        },
+        error: (err) => {
+          console.error('Error en la API:', err);
+          this.notificar('Error en la API', 'danger');
+        }
+      });
+
     } else {
       console.log('Formulario inválido');
     }
+  }
+  async notificar(mensaje: string, color: 'success' | 'danger') {
+
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 2500,
+      position: 'bottom',
+      color: color,
+      icon: color === 'success' ? 'checkmark-circle' : 'alert-circle',
+      cssClass: 'custom-toast-right'
+    });
+
+    await toast.present();
   }
 }
