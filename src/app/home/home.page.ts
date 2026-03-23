@@ -23,7 +23,8 @@ export class HomePage implements OnInit {
   menuItems = [
     { label: 'Dashboard', icon: 'home-outline', active: true, path: '/home' },
     { label: 'Clientes', icon: 'people-outline', active: false, path: '/home/clientes' },
-    { label: 'Pacientes', icon: 'paw', active: false, path: '/home/pacientes' },
+    { label: 'Tutores', icon: 'person-outline', active: false, path: '/home/tutores' },
+    { label: 'Pacientes', icon: 'paw', active: false, path: '/home/mascotas' },
     { label: 'Agenda y Citas', icon: 'calendar-outline', active: false, path: '/home/agenda' },
     { label: 'Hospital y Cirugía', icon: 'medkit-outline', active: false, path: '/home/hospital' },
     { label: 'Inventario', icon: 'cube-outline', active: false, path: '/home/inventario' },

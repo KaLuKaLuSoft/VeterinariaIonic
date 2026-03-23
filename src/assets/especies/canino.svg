@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="95" fill="#ecf3f2" />
+  <circle cx="100" cy="100" r="85" fill="#f0fdf9" stroke="#5ba19b" stroke-width="2"/>
+  <path d="M70,80 Q100,60 130,80 L130,130 Q100,150 70,130 Z" fill="#5ba19b" />
+  <path d="M70,80 Q55,80 50,110 Q50,130 70,120" fill="#5ba19b" /> <!-- Ear L -->
+  <path d="M130,80 Q145,80 150,110 Q150,130 130,120" fill="#5ba19b" /> <!-- Ear R -->
+  <circle cx="85" cy="100" r="4" fill="white" />
+  <circle cx="115" cy="100" r="4" fill="white" />
+  <circle cx="100" cy="115" r="8" fill="#4a847f" />
+</svg>

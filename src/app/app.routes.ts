@@ -1,6 +1,5 @@
-import { Routes } from '@angular/router';
+import { Routes } from '@angular/router'; 
 import { authGuard } from './modulos/login/guarda/auth.guard';
-
 import { noAuthGuard } from './modulos/login/guarda/no-auth.guard';
 
 export const routes: Routes = [
@@ -22,6 +21,22 @@ export const routes: Routes = [
         path: 'clientes',
         loadComponent: () => import('./modulos/clientes/datos/clientes.page').then((m) => m.ClientesPage),
       },
+      {
+        path: 'mascotas',
+        loadComponent: () => import('./modulos/mascotas/datos/mascotas.page').then((m) => m.MascotasPage),
+      },
+      {
+        path: 'propietario/:id',
+        loadComponent: () => import('./modulos/clientes/propietario/propietario.page').then((m) => m.PropietarioPage),
+      },
+      {
+        path: 'nuevo-paciente/:idTutor/:idEspecie',
+        loadComponent: () => import('./modulos/mascotas/datos/paciente-form/paciente-form.page').then(m => m.NuevoPacientePage),
+      },
+      {
+        path: 'tutores',
+        loadComponent: () => import('./modulos/tutores/datos/tutores.page').then((m) => m.TutoresPage),
+      },
     ],
   },
   {
@@ -31,6 +46,6 @@ export const routes: Routes = [
   },
   {
     path: 'registro',
-    loadComponent: () => import('./modulos/registro/registro.page').then( m => m.RegistroPage)
+    loadComponent: () => import('./modulos/registro/registro.page').then(m => m.RegistroPage)
   },
 ];

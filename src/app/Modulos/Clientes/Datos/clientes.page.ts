@@ -16,6 +16,7 @@ import { AppResumeService } from 'src/app/Globales/AppResumeService.service';
 
 import { takeUntil } from 'rxjs/operators';
 import { LoginService } from '../../login/servicios/login.service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-clientes',
@@ -56,6 +57,7 @@ export class ClientesPage implements OnInit, OnDestroy {
     public itemsPerPage: number = 10;
     public pagesOptions: number[] = [10, 20, 30, 40, 50];
     private loginService = inject(LoginService);
+    private router = inject(Router);
 
     get totalPages(): number {
         return Math.ceil(this.clientesFiltrados.length / this.itemsPerPage) || 1;
@@ -358,6 +360,10 @@ export class ClientesPage implements OnInit, OnDestroy {
             cssClass: 'custom-toast-right'
         });
         await toast.present();
+    }
+
+    irAlPerfil(cliente: any) {
+        this.router.navigate(['/home/propietario', cliente.id]);
     }
 
 }

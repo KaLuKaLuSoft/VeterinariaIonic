@@ -1,0 +1,441 @@
+<ion-content class="ion-padding main-content">
+    
+    <div class="header-container">
+        <h1>Creación Paciente</h1>
+        <div class="breadcrumbs">
+            <span>Inicio</span> › <span>Perfil Propietario</span> › <span class="active">Creación Paciente</span>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step" [class.active]="currentStep === 1" (click)="changeStep(1)">
+                <div class="step-number">1</div>
+                <span class="step-label">Datos Básicos</span>
+            </div>
+            <div class="step" [class.active]="currentStep === 2" (click)="changeStep(2)">
+                <div class="step-number">2</div>
+                <span class="step-label">Complementarios</span>
+            </div>
+            <div class="step" [class.active]="currentStep === 3" (click)="changeStep(3)">
+                <div class="step-number">3</div>
+                <span class="step-label">Antecedentes</span>
+            </div>
+        </div>
+
+        <div class="spinner-center" *ngIf="isLoading">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <p>Preparando formulario...</p>
+        </div>
+
+        <ng-container *ngIf="!isLoading">
+            <!-- STEP 1: DATOS BÁSICOS -->
+            <form [formGroup]="pacienteForm" *ngIf="currentStep === 1" class="custom-layout-form">
+                <div class="section-title">
+                    <h2>Información Básica</h2>
+                    <p>Los campos marcados con asterisco (*) son obligatorios</p>
+                </div>
+
+                <div class="grid-form">
+                    <div class="form-item">
+                        <label>Nombre*</label>
+                        <input type="text" formControlName="nombreMascota" placeholder="Nombre de la mascota">
+                    </div>
+                    <div class="form-item">
+                        <label>Raza*</label>
+                        <div class="raza-dropdown-wrapper">
+                            <button type="button" class="raza-trigger" (click)="toggleRazaDropdown()">
+                                <span [class.placeholder]="!razaSeleccionadaNombre">{{ razaSeleccionadaNombre || 'Seleccione raza' }}</span>
+                                <svg class="chevron" [class.open]="razaDropdownOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="raza-panel" *ngIf="razaDropdownOpen">
+                                <div class="raza-search-wrapper">
+                                    <input type="text" [(ngModel)]="razaSearch" [ngModelOptions]="{standalone: true}" placeholder="Buscar raza..." class="raza-search-input" (click)="$event.stopPropagation()" autofocus>
+                                </div>
+                                <div class="raza-options-list">
+                                    <div *ngIf="razasFiltradas.length === 0" class="raza-no-results">Sin resultados</div>
+                                    <div class="raza-option" *ngFor="let r of razasFiltradas" (click)="selectRaza(r)" [class.selected]="r.nombreRaza === razaSeleccionadaNombre">
+                                        {{ r.nombreRaza }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Hidden control for validation -->
+                        <input type="hidden" formControlName="raza">
+                    </div>
+                    <div class="form-item">
+                        <label>Sexo*</label>
+                        <div class="radio-group-horizontal">
+                            <label class="radio-inline"><input type="radio" value="F" formControlName="sexo"> Hembra</label>
+                            <label class="radio-inline"><input type="radio" value="M" formControlName="sexo"> Macho</label>
+                        </div>
+                    </div>
+                    <div class="form-item">
+                        <label>Color</label>
+                        <select formControlName="color">
+                            <option value="">Seleccione</option>
+                            <option *ngFor="let c of colores" [value]="c">{{c}}</option>
+                        </select>
+                    </div>
+
+                    <div class="form-item">
+                        <label>ID Chip</label>
+                        <input type="text" formControlName="idChip" placeholder="Ej: 123456789">
+                    </div>
+                    <div class="form-item">
+                        <label>Fecha Nacimiento*</label>
+                        <input type="date" formControlName="fechaNacimiento">
+                    </div>
+                    <div class="form-item">
+                        <label>Talla</label>
+                        <select formControlName="talla">
+                            <option value="">Seleccione</option>
+                            <option *ngFor="let t of tallas" [value]="t">{{t}}</option>
+                        </select>
+                    </div>
+                    <div class="form-item">
+                        <label>Peso Inicial (Kg)</label>
+                        <input type="number" formControlName="pesoInicial" placeholder="0.00">
+                    </div>
+
+                    <div class="form-item full-width">
+                        <label>Señales Particulares</label>
+                        <textarea formControlName="senalesParticulares" rows="4" placeholder="Describa las señales particulares del paciente..."></textarea>
+                    </div>
+                </div>
+
+                <div class="bottom-actions">
+                    <button type="button" class="btn btn-cancel" (click)="router.navigate(['/home/propietario', tutorId])">Cancelar</button>
+                    <button type="button" class="btn btn-back" disabled>Atrás</button>
+                    <button type="button" class="btn btn-next" (click)="currentStep = 2">Ir a Complementarios</button>
+                    <button type="submit" class="btn btn-finish" (click)="onSubmit()" [disabled]="pacienteForm.invalid">Finalizar</button>
+                </div>
+            </form>
+
+            <!-- STEP 2: COMPLEMENTARIOS -->
+            <form [formGroup]="complementariosForm" *ngIf="currentStep === 2" class="custom-layout-form">
+                
+                <!-- Alimentación Section -->
+                <div class="section-title">
+                    <h2>Alimentación</h2>
+                    <p>Los campos marcados con asterisco (*) son obligatorios</p>
+                </div>
+
+                <div class="grid-form">
+                    <div class="form-item full-width-sm half-width-lg">
+                        <label>Tipo Alimentación*</label>
+                        <div class="radio-group-horizontal flex-wrap">
+                            <label class="radio-inline"><input type="radio" value="Casera" formControlName="tipoAlimentacion"> Casera</label>
+                            <label class="radio-inline"><input type="radio" value="Concentrado" formControlName="tipoAlimentacion"> Concentrado</label>
+                            <label class="radio-inline"><input type="radio" value="Mixta" formControlName="tipoAlimentacion"> Mixta</label>
+                            <label class="radio-inline"><input type="radio" value="Otro" formControlName="tipoAlimentacion"> ¿Otro?</label>
+                        </div>
+                    </div>
+
+                    <div class="form-item full-width-sm half-width-lg" *ngIf="complementariosForm.get('tipoAlimentacion')?.value === 'Otro'">
+                        <label>¿Cuál?</label>
+                        <input type="text" formControlName="alimentacionCual" placeholder="Especifique tipo de alimentación">
+                    </div>
+
+                    <div class="form-item full-width">
+                        <label>Frecuencia de Consumo*</label>
+                        <div class="radio-group-horizontal flex-wrap">
+                            <label class="radio-inline"><input type="radio" value="1 Vez" formControlName="frecuenciaConsumo"> 1 Vez</label>
+                            <label class="radio-inline"><input type="radio" value="2 Veces" formControlName="frecuenciaConsumo"> 2 Veces</label>
+                            <label class="radio-inline"><input type="radio" value="3 Veces" formControlName="frecuenciaConsumo"> 3 Veces</label>
+                            <label class="radio-inline"><input type="radio" value="A Voluntad" formControlName="frecuenciaConsumo"> A Voluntad</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Convivencia Section -->
+                <div class="section-title">
+                    <h2>Convivencia</h2>
+                </div>
+
+                <div class="grid-form">
+                    <div class="form-item half-width-lg">
+                        <label>¿Sale solo a la calle?*</label>
+                        <div class="radio-group-horizontal">
+                            <label class="radio-inline"><input type="radio" value="Si" formControlName="saleALaCalle"> Sí</label>
+                            <label class="radio-inline"><input type="radio" value="No" formControlName="saleALaCalle"> No</label>
+                        </div>
+                    </div>
+
+                    <div class="form-item half-width-lg">
+                        <label>Procedencia*</label>
+                        <div class="radio-group-horizontal">
+                            <label class="radio-inline"><input type="radio" value="Rural" formControlName="procedencia"> Rural</label>
+                            <label class="radio-inline"><input type="radio" value="Urbana" formControlName="procedencia"> Urbana</label>
+                        </div>
+                    </div>
+
+                    <div class="form-item full-width-sm half-width-lg">
+                        <label>Hábitat*</label>
+                        <div class="radio-group-horizontal flex-wrap">
+                            <label class="radio-inline"><input type="radio" value="Apartamento" formControlName="habitat"> Apartamento</label>
+                            <label class="radio-inline"><input type="radio" value="Calle" formControlName="habitat"> Calle</label>
+                            <label class="radio-inline"><input type="radio" value="Casa" formControlName="habitat"> Casa</label>
+                            <label class="radio-inline"><input type="radio" value="Finca" formControlName="habitat"> Finca</label>
+                            <label class="radio-inline"><input type="radio" value="Otro" formControlName="habitat"> Otro</label>
+                            <label class="radio-inline"><input type="radio" value="Taller" formControlName="habitat"> Taller</label>
+                        </div>
+                    </div>
+
+                    <div class="form-item full-width-sm half-width-lg" *ngIf="complementariosForm.get('habitat')?.value === 'Otro'">
+                        <label>¿Cuál?</label>
+                        <input type="text" formControlName="habitatCual" placeholder="Especifique hábitat">
+                    </div>
+
+                    <div class="form-item full-width">
+                        <label>¿Convive con más animales?*</label>
+                        <div class="radio-group-horizontal">
+                            <label class="radio-inline"><input type="radio" value="No" formControlName="conviveOtros"> No</label>
+                            <label class="radio-inline"><input type="radio" value="Si" formControlName="conviveOtros"> Sí</label>
+                        </div>
+                    </div>
+
+                    <!-- Campos Condicionales de Animales de Convivencia -->
+                    <ng-container *ngIf="complementariosForm.get('conviveOtros')?.value === 'Si'">
+                        <div class="form-item">
+                            <label>Especie*</label>
+                            <select formControlName="tempEspecie">
+                                <option value="">Seleccione</option>
+                                <option *ngFor="let esp of especiesLista" [value]="esp">{{esp}}</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label>Raza</label>
+                            <select formControlName="tempRaza">
+                                <option value="">Seleccione</option>
+                                <option *ngFor="let r of razas" [value]="r.nombreRaza">{{r.nombreRaza}}</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label>Nombre</label>
+                            <input type="text" formControlName="tempNombre" placeholder="Nombre del animal">
+                        </div>
+                        <div class="form-item align-end">
+                            <button type="button" class="btn btn-add" (click)="addAnimalConvivencia()">Añadir</button>
+                        </div>
+
+                        <!-- Lista de animales añadidos -->
+                        <div class="full-width" *ngIf="animalesConvivencia.length > 0">
+                            <div class="animal-tags">
+                                <div class="animal-tag" *ngFor="let anim of animalesConvivencia; let i = index">
+                                    <span>{{anim.nombre}} ({{anim.especie}} - {{anim.raza || 'SR'})</span>
+                                    <button (click)="removeAnimalConvivencia(i)"><ion-icon name="close-outline"></ion-icon></button>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Estado Reproductivo -->
+                <div class="section-title">
+                    <h2>Estado Reproductivo</h2>
+                    <p>¿Cuál es su estado reproductivo?*</p>
+                </div>
+
+                <div class="grid-form">
+                    <div class="form-item full-width">
+                        <div class="radio-group-horizontal">
+                            <label class="radio-inline"><input type="radio" value="Entero" formControlName="estadoReproductivo"> Entero</label>
+                            <label class="radio-inline"><input type="radio" value="Esterilizado" formControlName="estadoReproductivo"> Esterilizado</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-actions">
+                    <button type="button" class="btn btn-cancel" (click)="router.navigate(['/home/propietario', tutorId])">Cancelar</button>
+                    <button type="button" class="btn btn-back" (click)="currentStep = 1">Atrás</button>
+                    <button type="button" class="btn btn-next" (click)="currentStep = 3">Ir a Antecedentes</button>
+                    <button type="submit" class="btn btn-finish" (click)="onSubmit()" [disabled]="pacienteForm.invalid">Finalizar</button>
+                </div>
+            </form>
+
+            <!-- STEP 3: ANTECEDENTES -->
+            <form [formGroup]="antecedentesForm" *ngIf="currentStep === 3" class="custom-layout-form">
+                
+                <div class="info-banner">
+                    <p>Los siguientes antecedentes NO aparecerán en su <strong>Certificado de Salud</strong>. Si así lo requiere, deberá añadir uno a uno como nuevos registros del paciente, desde el perfil (que aparecerá una vez hayas dado clic al botón "Finalizar").</p>
+                </div>
+
+                <!-- Alergias -->
+                <div class="antecedente-section">
+                    <label class="checkbox-container">
+                        <input type="checkbox" formControlName="conoceAlergias">
+                        <span class="checkbox-label">Conozco las alergias del paciente</span>
+                    </label>
+                    <div class="grid-form no-margin" *ngIf="antecedentesForm.get('conoceAlergias')?.value">
+                        <div class="form-item full-width">
+                            <label>¿Cuáles?*</label>
+                            <input type="text" formControlName="alergiasDetalle" placeholder="Describa las alergias...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vacunación -->
+                <div class="antecedente-section">
+                    <label class="checkbox-container">
+                        <input type="checkbox" formControlName="conoceVacunas">
+                        <span class="checkbox-label">Conozco las vacunas aplicadas a la fecha</span>
+                    </label>
+                    <div *ngIf="antecedentesForm.get('conoceVacunas')?.value">
+                        <div class="grid-form no-margin">
+                            <div class="form-item span-2">
+                                <label>Vacuna*</label>
+                                <select formControlName="tempVacuna">
+                                    <option value="">Seleccione</option>
+                                    <option *ngFor="let v of opcionesVacunas" [value]="v">{{v}}</option>
+                                </select>
+                            </div>
+                            <div class="form-item span-2">
+                                <label>Fecha Aplicación*</label>
+                                <input type="date" formControlName="tempFechaVacuna">
+                            </div>
+                        </div>
+                        <div class="antecedente-add-row">
+                            <button type="button" class="btn btn-add" (click)="addVacuna()">Añadir</button>
+                        </div>
+                        <div class="antecedente-tags-row" *ngIf="vacunasList.length > 0">
+                            <div class="animal-tags">
+                                <div class="animal-tag" *ngFor="let item of vacunasList; let i = index">
+                                    <span>{{item.nombre}} - {{item.fecha}}</span>
+                                    <button (click)="removeVacuna(i)"><ion-icon name="close-outline"></ion-icon></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desparasitación -->
+                <div class="antecedente-section">
+                    <label class="checkbox-container">
+                        <input type="checkbox" formControlName="conoceDesparasitacion">
+                        <span class="checkbox-label">Conozco las desparasitaciones hasta la fecha</span>
+                    </label>
+                    <div *ngIf="antecedentesForm.get('conoceDesparasitacion')?.value">
+                        <div class="grid-form no-margin">
+                            <div class="form-item span-2">
+                                <label>Medicamento*</label>
+                                <select formControlName="tempMedicamento">
+                                    <option value="">Seleccione</option>
+                                    <option *ngFor="let m of opcionesMedicamentos" [value]="m">{{m}}</option>
+                                </select>
+                            </div>
+                            <div class="form-item span-2">
+                                <label>Fecha Aplicación*</label>
+                                <input type="date" formControlName="tempFechaDesparasitacion">
+                            </div>
+                        </div>
+                        <div class="antecedente-add-row">
+                            <button type="button" class="btn btn-add" (click)="addDesparasitacion()">Añadir</button>
+                        </div>
+                        <div class="antecedente-tags-row" *ngIf="desparasitacionesList.length > 0">
+                            <div class="animal-tags">
+                                <div class="animal-tag" *ngFor="let item of desparasitacionesList; let i = index">
+                                    <span>{{item.medicamento}} - {{item.fecha}}</span>
+                                    <button (click)="removeDesparasitacion(i)"><ion-icon name="close-outline"></ion-icon></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enfermedades -->
+                <div class="antecedente-section">
+                    <label class="checkbox-container">
+                        <input type="checkbox" formControlName="conoceEnfermedades">
+                        <span class="checkbox-label">Conozco los antecedentes médicos hasta la fecha</span>
+                    </label>
+                    <div *ngIf="antecedentesForm.get('conoceEnfermedades')?.value">
+                        <div class="grid-form no-margin">
+                            <div class="form-item span-2">
+                                <label>Enfermedad*</label>
+                                <select formControlName="tempEnfermedad">
+                                    <option value="">Seleccione</option>
+                                    <option *ngFor="let e of opcionesEnfermedades" [value]="e">{{e}}</option>
+                                </select>
+                            </div>
+                            <div class="form-item span-2">
+                                <label>Medicamentos Suministrados</label>
+                                <input type="text" formControlName="tempMedEnfermedad" placeholder="Opcional">
+                            </div>
+                            <div class="form-item span-2">
+                                <label>Fecha Estimada*</label>
+                                <input type="date" formControlName="tempFechaEnfermedad">
+                            </div>
+                            <div class="form-item full-width">
+                                <label>Evolución</label>
+                                <textarea formControlName="tempEvolucion" rows="2" placeholder="Describa la evolución..."></textarea>
+                            </div>
+                        </div>
+                        <div class="antecedente-add-row">
+                            <button type="button" class="btn btn-add" (click)="addEnfermedad()">Añadir</button>
+                        </div>
+                        <div class="antecedente-tags-row" *ngIf="enfermedadesList.length > 0">
+                            <div class="animal-tags">
+                                <div class="animal-tag" *ngFor="let item of enfermedadesList; let i = index">
+                                    <span>{{item.enfermedad}} ({{item.fecha}})</span>
+                                    <button (click)="removeEnfermedad(i)"><ion-icon name="close-outline"></ion-icon></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cirugías -->
+                <div class="antecedente-section">
+                    <label class="checkbox-container">
+                        <input type="checkbox" formControlName="conoceCirugias">
+                        <span class="checkbox-label">Conozco las cirugías hasta la fecha</span>
+                    </label>
+                    <div *ngIf="antecedentesForm.get('conoceCirugias')?.value">
+                        <div class="grid-form no-margin">
+                            <div class="form-item span-2">
+                                <label>Tipo Procedimiento*</label>
+                                <select formControlName="tempCirugia">
+                                    <option value="">Seleccione</option>
+                                    <option value="Esterilizacion">Esterilización</option>
+                                    <option value="Traumatologia">Traumatología</option>
+                                    <option value="Otras">Otras</option>
+                                </select>
+                            </div>
+                            <div class="form-item span-2">
+                                <label>Fecha Estimada*</label>
+                                <input type="date" formControlName="tempFechaCirugia">
+                            </div>
+                        </div>
+                        <div class="antecedente-add-row">
+                            <button type="button" class="btn btn-add" (click)="addCirugia()">Añadir</button>
+                        </div>
+                        <div class="antecedente-tags-row" *ngIf="cirugiasList.length > 0">
+                            <div class="animal-tags">
+                                <div class="animal-tag" *ngFor="let item of cirugiasList; let i = index">
+                                    <span>{{item.procedimiento}} - {{item.fecha}}</span>
+                                    <button (click)="removeCirugia(i)"><ion-icon name="close-outline"></ion-icon></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-actions">
+                    <button type="button" class="btn btn-cancel" (click)="router.navigate(['/home/propietario', tutorId])">Cancelar</button>
+                    <button type="button" class="btn btn-back" (click)="currentStep = 2">Atrás</button>
+                    <button type="submit" class="btn btn-finish" (click)="onSubmit()" [disabled]="pacienteForm.invalid">Finalizar</button>
+                </div>
+            </form>
+
+        </ng-container>
+    </div>
+
+</ion-content>

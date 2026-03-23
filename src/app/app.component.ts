@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { AppResumeService } from './Globales/AppResumeService.service';
 import { LoginService } from './modulos/login/servicios/login.service';
+import { ConnectivityMonitor } from './Globales/ConnectivityMonitor.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     private appResumeService: AppResumeService,
-    private loginService: LoginService
+    private loginService: LoginService,
+    private connectivityMonitor: ConnectivityMonitor // Inicializar el monitor de red
   ) { }
 
   ngOnInit() {

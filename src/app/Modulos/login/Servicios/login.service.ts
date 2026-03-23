@@ -250,5 +250,22 @@ export class LoginService {
       console.error('scheduleRefresh: Error al decodificar el token JWT.', e);
     }
   }
+
+  // Método para sincronizar la sesión inmediatamente (ej: tras reconexión)
+  public syncSession() {
+    if (!this.isAuthenticated()) return;
+
+    console.log('🔄 Sincronizando sesión tras reconexión...');
+    this.refreshToken().subscribe({
+      next: (res: any) => {
+        console.log('✅ Sesión sincronizada correctamente.');
+        this.storeTokens(res.tokens, res.refreshToken);
+        this.scheduleRefresh(); // Re-programar el siguiente ciclo
+      },
+      error: (err) => {
+        console.warn('⚠️ No se pudo sincronizar la sesión, el servidor podría estar inalcanzable o el token expiró.', err);
+      }
+    });
+  }
 }
 

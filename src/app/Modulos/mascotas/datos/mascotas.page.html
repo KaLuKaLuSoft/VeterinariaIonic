@@ -1,0 +1,319 @@
+<ion-content [fullscreen]="true">
+    <div class="mascotas-content">
+        <div class="page-header">
+            <h1 class="page-title">Gestión de Mascotas</h1>
+            <ion-button (click)="showOwnerModal()" mode="ios" class="add-button">
+                <ion-icon name="add-outline" slot="start"></ion-icon>
+                Nueva Mascota
+            </ion-button>
+        </div>
+
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <ion-icon name="search-outline"></ion-icon>
+                <input type="text" placeholder="Buscar por nombre, especie, raza o dueño..." [(ngModel)]="searchTerm"
+                    (ngModelChange)="currentPage = 1" />
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Especie / Raza</th>
+                        <th>Sexo</th>
+                        <th>Dueño</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="mascotasFiltrados.length === 0 && !isLoading">
+                        <td colspan="6" class="ion-text-center ion-padding">
+                            <p *ngIf="searchTerm">No se encontraron mascotas que coincidan con "{{ searchTerm }}".</p>
+                            <p *ngIf="!searchTerm">No se encontraron mascotas registradas.</p>
+                        </td>
+                    </tr>
+
+                    <tr *ngFor="let mascota of mascotasFiltrados | paginate:itemsPerPage:currentPage" class="fade-in">
+                        <td>
+                            <div class="mascota-info">
+                                <span class="name">{{ mascota.nombreMascota }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="breed-info">
+                                <span class="species">{{ mascota.especie }}</span>
+                                <span class="breed">{{ mascota.raza }}</span>
+                            </div>
+                        </td>
+                        <td>{{ mascota.sexo === 'M' ? 'Macho' : 'Hembra' }}</td>
+                        <td>{{ mascota.nombreCliente }}</td>
+                        <td>
+                            <span class="status-badge" [class.active]="mascota.activo">
+                                {{ mascota.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <div class="actions-wrapper">
+                                <button class="action-btn view" (click)="openDetail(mascota)" title="Ver Detalle">
+                                    <ion-icon name="information-circle-outline"></ion-icon>
+                                </button>
+                                <button class="action-btn edit" (click)="setOpen(true, true, mascota)" title="Editar">
+                                    <ion-icon name="pencil-outline"></ion-icon>
+                                </button>
+                                <button class="action-btn delete" (click)="onDelete(mascota)" title="Eliminar">
+                                    <ion-icon name="trash-outline"></ion-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container" *ngIf="mascotasFiltrados.length > 0">
+            <div class="pagination-info">
+                <span>Mostrar</span>
+                <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1">
+                    <option [value]="5">5</option>
+                    <option [value]="10">10</option>
+                    <option [value]="20">20</option>
+                </select>
+                <span>registros</span>
+            </div>
+
+            <div class="pagination-buttons">
+                <button [disabled]="currentPage === 1" (click)="prevPage()">
+                    <ion-icon name="chevron-back-outline"></ion-icon>
+                </button>
+                <span class="page-indicator">Página {{ currentPage }}</span>
+                <button [disabled]="currentPage >= totalPages" (click)="nextPage()">
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+
+        <div class="custom-bottom-snackbar" *ngIf="isLoading">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <span>Actualizando mascotas...</span>
+        </div>
+    </div>
+
+    <!-- MODAL SELECCIONAR PROPIETARIO -->
+    <ion-modal [isOpen]="isOwnerModalOpen" (didDismiss)="closeOwnerModal()" class="owner-selector-modal">
+        <ng-template>
+            <div class="owner-modal-container" (click)="$event.stopPropagation()">
+                <div class="owner-modal-header">
+                    <h2>Selecciona el propietario</h2>
+                    <button type="button" class="close-modal-btn" (click)="closeOwnerModal()">
+                        <ion-icon name="close-circle-outline"></ion-icon>
+                    </button>
+                </div>
+
+                <div class="owner-modal-body">
+                    <div class="owner-search-box">
+                        <!-- Disparador que imita un select -->
+                        <div class="owner-select-trigger" *ngIf="!isOwnerListVisible" (click)="toggleOwnerList()">
+                            <span>Seleccione Propietario</span>
+                            <ion-icon name="caret-down-outline"></ion-icon>
+                        </div>
+
+                        <!-- Caja de búsqueda que aparece al dar clic -->
+                        <div class="owner-input-wrapper" *ngIf="isOwnerListVisible">
+                            <input type="text" [(ngModel)]="ownerSearchTerm" placeholder="Buscar propietario..."
+                                (keydown)="handleOwnerKeyDown($event)" autofocus />
+                            <ion-icon name="caret-up-outline"
+                                (click)="toggleOwnerList(); $event.stopPropagation()"></ion-icon>
+                        </div>
+                    </div>
+
+                    <!-- Resultados Flotantes -->
+                    <div class="owner-results" *ngIf="isOwnerListVisible && ownerSearchTerm.length > 0">
+                        <div class="owner-item" *ngFor="let cliente of filteredClientes; let i = index"
+                            [class.selected]="i === selectedOwnerIndex" (click)="onSelectOwner(cliente)"
+                            (mouseenter)="selectedOwnerIndex = i">
+                            {{ cliente.nombreCliente }} - {{ cliente.numeroIdentificacion }}
+                        </div>
+                        <div class="no-owner-found" *ngIf="filteredClientes.length === 0">
+                            No se encontraron propietarios.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </ion-modal>
+
+    <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)" class="client-modal">
+        <ng-template>
+            <ion-header class="ion-no-border">
+                <ion-toolbar>
+                    <ion-title>{{ isEditing ? 'Editar Mascota' : 'Registrar Nueva Mascota' }}</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="setOpen(false)">
+                            <ion-icon name="close-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+
+            <ion-content class="ion-padding">
+                <form [formGroup]="mascotaForm" (ngSubmit)="onSubmit()" class="modal-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre de la Mascota *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="paw-outline"></ion-icon>
+                                <input type="text" formControlName="nombreMascota" placeholder="Ej: Toby">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Especie *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="paw-outline"></ion-icon>
+                                <input type="text" formControlName="especie" placeholder="Ej: Canina, Felina">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Raza</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="paw-outline"></ion-icon>
+                                <input type="text" formControlName="raza" placeholder="Ej: Labrador, Siames">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sexo *</label>
+                            <div class="select-wrapper">
+                                <ion-icon name="male-female-outline"></ion-icon>
+                                <select formControlName="sexo">
+                                    <option value="M">Macho</option>
+                                    <option value="F">Hembra</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Fecha de Nacimiento</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="calendar-outline"></ion-icon>
+                                <input type="date" formControlName="fechaNacimiento">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Dueño (Cliente) *</label>
+                            <div class="select-wrapper">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <select formControlName="idCliente">
+                                    <option [value]="null" disabled hidden>Seleccionar dueño</option>
+                                    <option *ngFor="let cliente of clientes" [value]="cliente.id">{{
+                                        cliente.nombreCliente }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <label style="margin-bottom: 0;">Mascota Activa</label>
+                            <ion-checkbox formControlName="activo" mode="ios"></ion-checkbox>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Observaciones</label>
+                            <div class="input-wrapper textarea">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                <textarea formControlName="observaciones" rows="3"
+                                    placeholder="Notas adicionales..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <ion-button type="button" fill="clear" color="medium"
+                            (click)="setOpen(false)">Cancelar</ion-button>
+                        <ion-button type="submit" [disabled]="mascotaForm.invalid" class="save-btn">Guardar
+                            Mascota</ion-button>
+                    </div>
+                </form>
+            </ion-content>
+        </ng-template>
+    </ion-modal>
+
+    <ion-modal [isOpen]="isDetailModalOpen" (didDismiss)="closeDetail()" class="client-detail-modal">
+        <ng-template>
+            <div class="detail-container">
+                <div class="detail-header">
+                    <div class="client-profile">
+                        <div class="avatar-circle">
+                            {{ selectedMascota?.nombreMascota?.charAt(0) }}
+                        </div>
+                        <div class="header-text">
+                            <h2>{{ selectedMascota?.nombreMascota }}</h2>
+                            <span class="status-badge" [class.active]="selectedMascota?.activo">
+                                {{ selectedMascota?.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </div>
+                    </div>
+                    <ion-button fill="clear" (click)="closeDetail()" class="close-btn">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </ion-button>
+                </div>
+
+                <ion-content>
+                    <div class="detail-grid">
+                        <div class="detail-section">
+                            <h3 class="section-title">
+                                <ion-icon name="information-circle-outline"></ion-icon>
+                                Información General
+                            </h3>
+                            <div class="info-item">
+                                <span class="label">Especie / Raza</span>
+                                <span class="value">{{ selectedMascota?.especie }} - {{ selectedMascota?.raza || 'N/A'
+                                    }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Sexo</span>
+                                <span class="value">{{ selectedMascota?.sexo === 'M' ? 'Macho' : 'Hembra' }}</span>
+                            </div>
+                            <div class="info-item" *ngIf="selectedMascota?.fechaNacimiento">
+                                <span class="label">Fecha de Nacimiento</span>
+                                <span class="value">
+                                    <ion-icon name="calendar-outline"></ion-icon>
+                                    {{ selectedMascota?.fechaNacimiento | date:'dd MMM, yyyy' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3 class="section-title">
+                                <ion-icon name="person-outline"></ion-icon>
+                                Dueño
+                            </h3>
+                            <div class="info-item">
+                                <span class="label">Nombre del Cliente</span>
+                                <span class="value">{{ selectedMascota?.nombreCliente }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section full-width" *ngIf="selectedMascota?.observaciones">
+                            <h3 class="section-title">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                Observaciones
+                            </h3>
+                            <div class="obs-box">
+                                {{ selectedMascota?.observaciones }}
+                            </div>
+                        </div>
+                    </div>
+                </ion-content>
+
+                <div class="detail-footer">
+                    <ion-button expand="block" fill="outline" color="dark" (click)="closeDetail()">Cerrar</ion-button>
+                </div>
+            </div>
+        </ng-template>
+    </ion-modal>
+</ion-content>

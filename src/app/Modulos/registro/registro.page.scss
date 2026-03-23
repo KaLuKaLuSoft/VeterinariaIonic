@@ -396,22 +396,7 @@ ion-content {
     }
 }
 
-/* Toast abajo derecha estilo snackbar */
-::ng-deep ion-toast.custom-toast-right {
-    --width: auto;
-}
-
-::ng-deep ion-toast.custom-toast-right::part(container) {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    left: auto;
-    transform: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-weight: 500;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-}
+/* Las clases custom-toast-right han sido movidas a global.scss */
 
 .login-redirect {
     text-align: center;

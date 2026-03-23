@@ -73,3 +73,63 @@ body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f7fafc; }
+
+/* FIX DEFINITIVO PARA SNACKBAR EN LA ESQUINA DERECHA (SOBRE EL RELOJ) */
+
+/* El componente ion-toast de Ionic a veces ignora el alineado derecho, por eso lo forzamos aquí */
+ion-toast.custom-toast-right {
+    --width: auto !important;
+    --max-width: 90vw !important;
+    --start: auto !important;
+    --end: 25px !important;
+    --margin-bottom: 25px !important;
+    justify-content: flex-end !important;
+    align-items: flex-end !important;
+    right: 25px !important;
+    left: auto !important;
+}
+
+/* También incluimos el selector de clase para el caso de los divs de carga (Spinners) */
+.custom-bottom-snackbar,
+ion-toast.custom-toast-right::part(container) {
+    position: fixed !important;
+    bottom: 25px !important;
+    right: 25px !important;
+    left: auto !important;
+    background: rgba(31, 41, 55, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+    z-index: 9999 !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    animation: slideInRightToast 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    width: fit-content !important;
+    white-space: nowrap !important; /* FORZAR UNA SOLA LÍNEA */
+    pointer-events: auto !important;
+}
+
+/* Estilo para el mensaje interno del toast */
+ion-toast.custom-toast-right::part(message) {
+    padding: 0 !important;
+    text-align: left !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+}
+
+@keyframes slideInRightToast {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

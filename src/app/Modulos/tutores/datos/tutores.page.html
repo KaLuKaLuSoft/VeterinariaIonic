@@ -1,22 +1,22 @@
 <ion-content [fullscreen]="true">
     <div class="clientes-content">
         <div class="page-header">
-            <h1 class="page-title">Gestión de Clientes</h1>
+            <h1 class="page-title">Gestión de Tutores (Dueños)</h1>
             <ion-button (click)="setOpen(true, false)" mode="ios" class="add-button">
                 <ion-icon name="add-outline" slot="start"></ion-icon>
-                Nuevo Cliente
+                Nuevo Tutor
             </ion-button>
         </div>
 
         <div class="search-container">
             <div class="search-input-wrapper">
                 <ion-icon name="search-outline"></ion-icon>
-                <input type="text" placeholder="Buscar por nombre, email, contacto o código..." [(ngModel)]="searchTerm"
+                <input type="text" placeholder="Buscar por nombre, correo, identificación, código..." [(ngModel)]="searchTerm"
                     (ngModelChange)="currentPage = 1" />
             </div>
-            <button class="filter-btn" (click)="abrirFiltros()" [class.active-filter]="selectedFilterTipo">
+            <button class="filter-btn" (click)="abrirFiltros()" [class.active-filter]="selectedFilterDoc">
                 <ion-icon name="filter-outline"></ion-icon>
-                {{ selectedFilterTipo ? 'Filtro: ' + selectedFilterTipo : 'Filtros' }}
+                {{ selectedFilterDoc ? 'Documento: ' + selectedFilterDoc : 'Filtros' }}
             </button>
         </div>
 
@@ -25,46 +25,45 @@
                 <thead>
                     <tr>
                         <th>Código</th>
-                        <th>Cliente</th>
+                        <th>Tutor</th>
+                        <th>Identificación</th>
                         <th>Contacto</th>
-                        <th>Dirección</th>
-                        <th>Acceso</th>
+                        <th>Ciudad</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="clientesFiltrados.length === 0 && !isLoading">
+                    <tr *ngIf="tutoresFiltrados.length === 0 && !isLoading">
                         <td colspan="6" class="ion-text-center ion-padding">
-                            <p *ngIf="searchTerm">No se encontraron clientes que coincidan con "{{ searchTerm }}".</p>
-                            <p *ngIf="!searchTerm">No se encontraron clientes registrados.</p>
+                            <p *ngIf="searchTerm">No se encontraron tutores que coincidan con "{{ searchTerm }}".</p>
+                            <p *ngIf="!searchTerm">No se encontraron tutores registrados.</p>
                         </td>
                     </tr>
 
-                    <tr *ngFor="let cliente of clientesFiltrados | paginate:itemsPerPage:currentPage" class="fade-in">
-                        <td class="code-cell">{{ cliente.codCliente }}</td>
+                    <tr *ngFor="let tutor of tutoresFiltrados | paginate:itemsPerPage:currentPage" class="fade-in">
+                        <td class="code-cell">{{ tutor.codDuenos }}</td>
                         <td>
                             <div class="client-info">
-                                <span class="name client-link" (click)="irAlPerfil(cliente)">{{ cliente.nombreCliente
-                                    }}</span>
-                                <span class="email">{{ cliente.email }}</span>
+                                <span class="name client-link" (click)="irAlPerfil(tutor)">{{ tutor.nombreCompleto }}</span>
+                                <span class="email">{{ tutor.correoElectronico }}</span>
                             </div>
                         </td>
-                        <td>{{ cliente.celular }}</td>
-                        <td>{{ cliente.direccionCliente }}</td>
+                        <td>{{ tutor.numeroIdentificacion }}</td>
+                        <td>{{ tutor.celular }}</td>
                         <td>
-                            <span class="status-badge" [class.vip]="cliente.tipoCliente === 'VIP'">
-                                {{ cliente.tipoCliente }}
+                            <span class="status-badge" [class.vip]="tutor.activo">
+                                {{ tutor.nombreCiudad }}
                             </span>
                         </td>
                         <td class="actions-cell">
                             <div class="actions-wrapper">
-                                <button class="action-btn view" (click)="openDetail(cliente)" title="Ver Detalle">
+                                <button class="action-btn view" (click)="openDetail(tutor)" title="Ver Detalle">
                                     <ion-icon name="information-circle-outline"></ion-icon>
                                 </button>
-                                <button class="action-btn edit" (click)="setOpen(true, true, cliente)" title="Editar">
+                                <button class="action-btn edit" (click)="setOpen(true, true, tutor)" title="Editar">
                                     <ion-icon name="pencil-outline"></ion-icon>
                                 </button>
-                                <button class="action-btn delete" (click)="onDelete(cliente)" title="Eliminar">
+                                <button class="action-btn delete" (click)="onDelete(tutor)" title="Eliminar">
                                     <ion-icon name="trash-outline"></ion-icon>
                                 </button>
                             </div>
@@ -74,7 +73,7 @@
             </table>
         </div>
 
-        <div class="pagination-container" *ngIf="clientesFiltrados.length > 0">
+        <div class="pagination-container" *ngIf="tutoresFiltrados.length > 0">
             <div class="pagination-info">
                 <span>Mostrar</span>
                 <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1">
@@ -90,7 +89,7 @@
                     <ion-icon name="chevron-back-outline"></ion-icon>
                 </button>
                 <span class="page-indicator">Página {{ currentPage }}</span>
-                <button [disabled]="(clientesFiltrados | paginate:itemsPerPage:currentPage+1).length === 0"
+                <button [disabled]="(tutoresFiltrados | paginate:itemsPerPage:currentPage+1).length === 0"
                     (click)="currentPage = currentPage + 1">
                     <ion-icon name="chevron-forward-outline"></ion-icon>
                 </button>
@@ -99,7 +98,7 @@
 
         <div class="custom-bottom-snackbar" *ngIf="isLoading">
             <ion-spinner name="crescent" color="primary"></ion-spinner>
-            <span>Actualizando clientes...</span>
+            <span>Actualizando tutores...</span>
         </div>
     </div>
 
@@ -107,7 +106,7 @@
         <ng-template>
             <ion-header class="ion-no-border">
                 <ion-toolbar>
-                    <ion-title>{{ isEditing ? 'Editar Cliente' : 'Registrar Nuevo Cliente' }}</ion-title>
+                    <ion-title>{{ isEditing ? 'Editar Tutor' : 'Registrar Nuevo Tutor' }}</ion-title>
                     <ion-buttons slot="end">
                         <ion-button (click)="setOpen(false)">
                             <ion-icon name="close-outline"></ion-icon>
@@ -117,21 +116,42 @@
             </ion-header>
 
             <ion-content class="ion-padding">
-                <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="modal-form">
+                <form [formGroup]="tutorForm" (ngSubmit)="onSubmit()" class="modal-form">
                     <div class="form-grid">
+
                         <div class="form-group">
-                            <label>Nombre Completo *</label>
-                            <div class="input-wrapper">
-                                <ion-icon name="person-outline"></ion-icon>
-                                <input type="text" formControlName="nombreCliente" placeholder="Ej: Juan Pérez">
+                            <label>Tipo de Documento *</label>
+                            <div class="select-wrapper">
+                                <ion-icon name="card-outline"></ion-icon>
+                                <select formControlName="idTipoDocumento">
+                                    <option [value]="null" disabled hidden>Seleccionar tipo de documento</option>
+                                    <option *ngFor="let tipo of tiposDocumentos" [value]="tipo.id">{{
+                                        tipo.tipoDocumento || tipo.nombreTipo }}</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label>Email *</label>
+                            <label>Nro Identificación *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                <input type="text" formControlName="numeroIdentificacion" placeholder="Ej: 1303... / RUC">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nombre Completo *</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <input type="text" formControlName="nombreCompleto" placeholder="Ej: Juan Pérez">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email</label>
                             <div class="input-wrapper">
                                 <ion-icon name="mail-outline"></ion-icon>
-                                <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+                                <input type="email" formControlName="correoElectronico" placeholder="correo@ejemplo.com">
                             </div>
                         </div>
 
@@ -139,33 +159,12 @@
                             <label>Celular</label>
                             <div class="input-wrapper">
                                 <ion-icon name="call-outline"></ion-icon>
-                                <input type="tel" formControlName="celular" placeholder="+X XXX XXX XXX">
+                                <input type="tel" formControlName="celular" placeholder="09X XXX XXXX">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label>Dirección</label>
-                            <div class="input-wrapper">
-                                <ion-icon name="location-outline"></ion-icon>
-                                <input type="text" formControlName="direccionCliente"
-                                    placeholder="Calle, Nro, Referencia">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Tipo de Cliente</label>
-                            <div class="select-wrapper">
-                                <ion-icon name="filter-outline"></ion-icon>
-                                <select formControlName="idCliente">
-                                    <option [value]="null" disabled hidden>Seleccionar tipo de cliente</option>
-                                    <option *ngFor="let tipo of tiposClientes" [value]="tipo.id">{{
-                                        tipo.nombreTipo }}</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Ciudad</label>
+                            <label>Ciudad *</label>
                             <div class="select-wrapper">
                                 <ion-icon name="location-outline"></ion-icon>
                                 <select formControlName="idCiudad" (change)="onCiudadChange($event)">
@@ -176,27 +175,28 @@
                             </div>
                         </div>
 
+                        <div class="form-group full-width">
+                            <label>Dirección</label>
+                            <div class="input-wrapper">
+                                <ion-icon name="location-outline"></ion-icon>
+                                <input type="text" formControlName="direccion"
+                                    placeholder="Calle, Nro, Referencia">
+                            </div>
+                        </div>
+
                         <div class="form-group"
                             style="display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin-top: 5px;">
-                            <label style="margin-bottom: 0;">Cliente Activo</label>
+                            <label style="margin-bottom: 0;">Tutor Activo</label>
                             <ion-checkbox formControlName="activo" mode="ios"></ion-checkbox>
                         </div>
 
-                        <div class="form-group">
-                            <label>Observaciones</label>
-                            <div class="input-wrapper textarea">
-                                <ion-icon name="document-text-outline"></ion-icon>
-                                <textarea formControlName="observaciones" rows="3"
-                                    placeholder="Notas adicionales..."></textarea>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="modal-footer">
                         <ion-button type="button" fill="clear" color="medium"
                             (click)="setOpen(false)">Cancelar</ion-button>
-                        <ion-button type="submit" [disabled]="clientForm.invalid" class="save-btn">Guardar
-                            Cliente</ion-button>
+                        <ion-button type="submit" [disabled]="tutorForm.invalid" class="save-btn">Guardar
+                            Tutor</ion-button>
                     </div>
                 </form>
             </ion-content>
@@ -209,12 +209,12 @@
                 <div class="detail-header">
                     <div class="client-profile">
                         <div class="avatar-circle">
-                            {{ selectedCliente?.nombreCliente?.charAt(0) }}
+                            {{ selectedTutor?.nombreCompleto?.charAt(0) }}
                         </div>
                         <div class="header-text">
-                            <h2>{{ selectedCliente?.nombreCliente }}</h2>
-                            <span class="status-badge" [class.vip]="selectedCliente?.tipoCliente === 'VIP'">
-                                {{ selectedCliente?.tipoCliente }}
+                            <h2>{{ selectedTutor?.nombreCompleto }}</h2>
+                            <span class="status-badge" [class.vip]="selectedTutor?.activo">
+                                {{ selectedTutor?.activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </div>
                     </div>
@@ -231,14 +231,18 @@
                                 Información General
                             </h3>
                             <div class="info-item">
-                                <span class="label">Código de Cliente</span>
-                                <span class="value code">{{ selectedCliente?.codCliente }}</span>
+                                <span class="label">Código</span>
+                                <span class="value code">{{ selectedTutor?.codDuenos }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">Fecha de Registro</span>
+                                <span class="label">Identificación ({{ selectedTutor?.tipoDocumento }})</span>
+                                <span class="value">{{ selectedTutor?.numeroIdentificacion }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Fecha Alta</span>
                                 <span class="value">
                                     <ion-icon name="calendar-outline"></ion-icon>
-                                    {{ selectedCliente?.fecha_Registro | date:'dd MMM, yyyy' }}
+                                    {{ selectedTutor?.fecha_Alta | date:'dd MMM, yyyy' }}
                                 </span>
                             </div>
                         </div>
@@ -250,32 +254,22 @@
                             </h3>
                             <div class="info-item">
                                 <span class="label">Correo Electrónico</span>
-                                <span class="value">{{ selectedCliente?.email }}</span>
+                                <span class="value">{{ selectedTutor?.correoElectronico }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">Teléfono / Celular</span>
-                                <span class="value">{{ selectedCliente?.celular }}</span>
+                                <span class="label">Celular</span>
+                                <span class="value">{{ selectedTutor?.celular }}</span>
                             </div>
                         </div>
 
                         <div class="detail-section full-width">
                             <h3 class="section-title">
                                 <ion-icon name="location-outline"></ion-icon>
-                                Ubicación
+                                Ubicación ({{ selectedTutor?.nombreCiudad }})
                             </h3>
                             <div class="info-item">
                                 <span class="label">Dirección Domiliciaria</span>
-                                <span class="value">{{ selectedCliente?.direccionCliente || 'No especificada' }}</span>
-                            </div>
-                        </div>
-
-                        <div class="detail-section full-width" *ngIf="selectedCliente?.observaciones">
-                            <h3 class="section-title">
-                                <ion-icon name="document-text-outline"></ion-icon>
-                                Observaciones
-                            </h3>
-                            <div class="obs-box">
-                                {{ selectedCliente?.observaciones }}
+                                <span class="value">{{ selectedTutor?.direccion || 'No especificada' }}</span>
                             </div>
                         </div>
                     </div>

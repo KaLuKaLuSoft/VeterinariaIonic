@@ -1,0 +1,467 @@
+<ion-content [fullscreen]="true">
+
+    <!-- Back Button -->
+    <div class="back-bar">
+        <button class="back-btn" (click)="goBack()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            Volver a Tutores
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner-container">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Cargando perfil...</p>
+        </div>
+    </div>
+
+    <!-- Profile Layout -->
+    <div class="profile-layout" *ngIf="!isLoading && tutor">
+
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-wrapper">
+                    <img [src]="fotoUrl" [alt]="tutor.nombreCompleto" class="avatar-img"
+                        (error)="onImgError($event)" />
+                    <button class="avatar-edit-btn" title="Cambiar foto">
+                        <ion-icon name="camera-outline"></ion-icon>
+                    </button>
+                </div>
+                <h2 class="owner-name">{{ tutor.nombreCompleto }}</h2>
+                <span class="owner-badge" [class.vip]="tutor.activo">
+                    {{ tutor.tipoDocumento || 'Tutor' }}
+                </span>
+            </div>
+
+            <!-- Tags -->
+            <div class="tags-row">
+                <span class="tag" *ngIf="tutor.activo">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon> Activo
+                </span>
+                <span class="tag inactive" *ngIf="!tutor.activo">
+                    <ion-icon name="close-circle-outline"></ion-icon> Inactivo
+                </span>
+                <span class="tag ghost" *ngIf="tutor.codDuenos">
+                    <ion-icon name="barcode-outline"></ion-icon> {{ tutor.codDuenos }}
+                </span>
+            </div>
+
+            <!-- Info Tabs -->
+            <div class="info-tabs">
+                <button class="tab-btn" [class.active]="activeTab === 'basico'"
+                    (click)="activeTab = 'basico'">Básico</button>
+                <button class="tab-btn" [class.active]="activeTab === 'adicional'"
+                    (click)="activeTab = 'adicional'">Adicional</button>
+            </div>
+
+            <!-- Tab Content: Basico -->
+            <div class="info-list" *ngIf="activeTab === 'basico'">
+                <div class="info-row">
+                    <span class="info-label">
+                        <ion-icon name="person-outline"></ion-icon> Nombre:
+                    </span>
+                    <span class="info-value">{{ tutor.nombreCompleto }}</span>
+                </div>
+                <div class="info-row" *ngIf="tutor.codDuenos">
+                    <span class="info-label">
+                        <ion-icon name="barcode-outline"></ion-icon> CI:
+                    </span>
+                    <span class="info-value code">{{ tutor.codDuenos }}</span>
+                </div>
+                <div class="info-row" *ngIf="tutor.celular">
+                    <span class="info-label">
+                        <ion-icon name="call-outline"></ion-icon> Celular:
+                    </span>
+                    <span class="info-value link">{{ tutor.celular }}</span>
+                </div>
+                <div class="info-row" *ngIf="tutor.correoElectronico">
+                    <span class="info-label">
+                        <ion-icon name="mail-outline"></ion-icon> Email:
+                    </span>
+                    <span class="info-value link">{{ tutor.correoElectronico }}</span>
+                </div>
+                <div class="info-row" *ngIf="tutor.direccion">
+                    <span class="info-label">
+                        <ion-icon name="location-outline"></ion-icon> Dirección:
+                    </span>
+                    <span class="info-value">{{ tutor.direccion }}</span>
+                </div>
+            </div>
+
+            <!-- Tab Content: Adicional -->
+            <div class="info-list" *ngIf="activeTab === 'adicional'">
+
+                <div class="info-row-inline">
+                    <span class="info-label-bold">Fecha Admisión:</span>
+                    <span class="info-value">{{ tutor.fecha_Alta ? (tutor.fecha_Alta | date:'dd/MM/yyyy')
+                        : 'No Asignada' }}</span>
+                </div>
+
+                <div class="info-row-inline">
+                    <span class="info-label-bold">Ciudad:</span>
+                    <span class="info-value">{{ tutor.nombreCiudad || 'No Asignada' }}</span>
+                </div>
+
+                <div class="info-row-inline">
+                    <span class="info-label-bold">Celular Adicional:</span>
+                    <span class="info-value">{{ tutor.celularAdicional || 'No registra' }}</span>
+                </div>
+
+                <div class="info-row-inline">
+                    <span class="info-label-bold">Pasaporte:</span>
+                    <span class="info-value">{{ tutor.pasaporte || 'No Asignada' }}</span>
+                </div>
+
+                <div class="info-row-inline">
+                    <span class="info-label-bold">¿Como se enteraron?:</span>
+                    <span class="info-value">{{ tutor.comoSeEenteraron || 'No Asignada' }}</span>
+                </div>
+
+                <!-- Redes Sociales colapsables -->
+                <div class="redes-section">
+                    <button class="redes-toggle-btn" (click)="toggleRedes()">
+                        <ion-icon [name]="redesOpen ? 'remove-outline' : 'add-outline'"></ion-icon>
+                        Redes Sociales:
+                    </button>
+
+                    <div class="redes-list" *ngIf="redesOpen">
+                        <div class="info-row-inline redes-item">
+                            <span class="info-label-bold redes-label">
+                                <ion-icon name="logo-instagram"></ion-icon> Instagram:
+                            </span>
+                            <span class="info-value link">{{ tutor.instagram || 'No Asignada' }}</span>
+                        </div>
+                        <div class="info-row-inline redes-item">
+                            <span class="info-label-bold redes-label">
+                                <ion-icon name="logo-facebook"></ion-icon> Facebook:
+                            </span>
+                            <span class="info-value link">{{ tutor.facebook || 'No Asignada' }}</span>
+                        </div>
+                        <div class="info-row-inline redes-item">
+                            <span class="info-label-bold redes-label">
+                                <ion-icon name="logo-twitter"></ion-icon> X:
+                            </span>
+                            <span class="info-value link">{{ tutor.twitter || 'No Asignada' }}</span>
+                        </div>
+                        <div class="info-row-inline redes-item">
+                            <span class="info-label-bold redes-label">
+                                <ion-icon name="logo-linkedin"></ion-icon> LinkedIn:
+                            </span>
+                            <span class="info-value link">{{ tutor.linkedin || 'No Asignada' }}</span>
+                        </div>
+                        <div class="info-row-inline redes-item">
+                            <span class="info-label-bold redes-label">
+                                <ion-icon name="logo-tiktok"></ion-icon> TikTok:
+                            </span>
+                            <span class="info-value link">{{ tutor.tiktok || 'No Asignada' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- GESTIÓN ADMINISTRATIVA (siempre visible, al pie del panel) -->
+            <div class="gestion-admin">
+                <h4 class="gestion-title">GESTIÓN ADMINISTRATIVA</h4>
+                <button class="admin-btn edit" (click)="editarInfoBasica()">
+                    <ion-icon name="pencil-outline"></ion-icon>
+                    Editar Información básica
+                </button>
+                <button class="admin-btn edit" (click)="editarInfoAdicional()">
+                    <ion-icon name="pencil-outline"></ion-icon>
+                    Editar información adicional
+                </button>
+                <button class="admin-btn danger" (click)="eliminarTutor()">
+                    <ion-icon name="trash-outline"></ion-icon>
+                    Eliminar Tutor
+                </button>
+            </div>
+
+        </div>
+        <!-- END LEFT PANEL -->
+
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+
+            <!-- Section Tabs -->
+            <div class="section-tabs">
+                <button class="section-tab" [class.active]="activeSection === 'pacientes'"
+                    (click)="activeSection = 'pacientes'">
+                    <ion-icon name="paw-outline"></ion-icon> Pacientes
+                </button>
+                <button class="section-tab" [class.active]="activeSection === 'compras'"
+                    (click)="activeSection = 'compras'">
+                    <ion-icon name="cart-outline"></ion-icon> Compras Realizadas
+                </button>
+                <button class="section-tab" [class.active]="activeSection === 'planes'"
+                    (click)="activeSection = 'planes'">
+                    <ion-icon name="shield-checkmark-outline"></ion-icon> Planes de Salud
+                </button>
+            </div>
+
+            <!-- PACIENTES SECTION -->
+            <div class="section-content" *ngIf="activeSection === 'pacientes'">
+                <div class="section-header-row">
+                    <button class="add-pet-btn" (click)="abrirNuevaMascota()">
+                        <ion-icon name="add-outline"></ion-icon> Nuevo Paciente
+                    </button>
+                </div>
+
+                <!-- Loading mascotas -->
+                <div class="empty-state" *ngIf="isLoadingMascotas">
+                    <ion-spinner name="crescent"></ion-spinner>
+                    <p>Cargando mascotas...</p>
+                </div>
+
+                <!-- Mascotas Table -->
+                <table class="mascotas-table" *ngIf="!isLoadingMascotas && mascotas.length > 0">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Raza</th>
+                            <th>Edad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let mascota of mascotas" class="mascota-row">
+                            <td>
+                                <div class="pet-info">
+                                    <div class="pet-avatar">
+                                        <ion-icon name="paw-outline"></ion-icon>
+                                    </div>
+                                    <span class="pet-name">{{ mascota.nombreMascota }}</span>
+                                </div>
+                            </td>
+                            <td>{{ mascota.raza || mascota.especie || '—' }}</td>
+                            <td>{{ calcularEdad(mascota.fechaNacimiento) }}</td>
+                            <td>
+                                <span class="pet-status" [class.activo]="mascota.activo">
+                                    {{ mascota.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="pet-action-btn" title="Ver detalles">
+                                    <ion-icon name="eye-outline"></ion-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Empty Mascotas -->
+                <div class="empty-state" *ngIf="!isLoadingMascotas && mascotas.length === 0">
+                    <ion-icon name="paw-outline" class="empty-icon"></ion-icon>
+                    <p>Este propietario no tiene mascotas registradas.</p>
+                    <button class="add-pet-btn-inline" (click)="abrirNuevaMascota()">
+                        <ion-icon name="add-outline"></ion-icon> Registrar primera mascota
+                    </button>
+                </div>
+            </div>
+
+            <!-- COMPRAS SECTION -->
+            <div class="section-content compras-section" *ngIf="activeSection === 'compras'">
+
+                <!-- Filtros -->
+                <div class="compras-filters">
+                    <div class="filter-row">
+
+                        <!-- Período -->
+                        <div class="filter-group">
+                            <label class="filter-label">Periodo</label>
+                            <div class="date-range-box">
+                                <ion-icon name="calendar-outline"></ion-icon>
+                                <input type="date" [(ngModel)]="compraFechaInicio" class="date-input" />
+                                <span class="date-sep">—</span>
+                                <input type="date" [(ngModel)]="compraFechaFin" class="date-input" />
+                            </div>
+                        </div>
+
+                        <!-- Compras (multi-select de servicios) -->
+                        <div class="filter-group">
+                            <label class="filter-label">Compras</label>
+                            <div class="multiselect-box" (click)="toggleComprasDropdown($event)">
+                                <!-- Tags seleccionados -->
+                                <div class="selected-tags">
+                                    <span class="service-tag" *ngFor="let s of comprasSeleccionadas">
+                                        <span>{{ s }}</span>
+                                        <button class="tag-remove" (click)="quitarServicio(s, $event)">
+                                            <ion-icon name="close-outline"></ion-icon>
+                                        </button>
+                                    </span>
+                                    <span class="placeholder-text" *ngIf="comprasSeleccionadas.length === 0">
+                                        Seleccionar servicios...
+                                    </span>
+                                </div>
+                                <ion-icon name="chevron-down-outline" class="dropdown-arrow"
+                                    [class.rotated]="comprasDropdownOpen"></ion-icon>
+
+                                <!-- Dropdown list -->
+                                <div class="dropdown-list" *ngIf="comprasDropdownOpen"
+                                    (click)="$event.stopPropagation()">
+                                    <div class="dropdown-item" *ngFor="let s of serviciosDisponibles"
+                                        [class.selected]="comprasSeleccionadas.includes(s)" (click)="toggleServicio(s)">
+                                        <span class="check-icon" *ngIf="comprasSeleccionadas.includes(s)">
+                                            <ion-icon name="checkmark-outline"></ion-icon>
+                                        </span>
+                                        {{ s }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="filter-row">
+
+                        <!-- Pacientes -->
+                        <div class="filter-group">
+                            <label class="filter-label">Pacientes</label>
+                            <div class="select-box">
+                                <ion-icon name="paw-outline"></ion-icon>
+                                <select [(ngModel)]="compraMascotaId" class="filter-select">
+                                    <option [value]="null">Seleccionar</option>
+                                    <option *ngFor="let m of mascotas" [value]="m.id">{{ m.nombreMascota }}</option>
+                                </select>
+                                <ion-icon name="chevron-down-outline" class="select-arrow"></ion-icon>
+                            </div>
+                        </div>
+
+                        <!-- Acción -->
+                        <div class="filter-group">
+                            <label class="filter-label">Acción</label>
+                            <div class="select-box">
+                                <ion-icon name="options-outline"></ion-icon>
+                                <select [(ngModel)]="compraAccion" class="filter-select">
+                                    <option value="">Todas las acciones</option>
+                                    <option value="pagado">Pagado</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="anulado">Anulado</option>
+                                </select>
+                                <ion-icon name="chevron-down-outline" class="select-arrow"></ion-icon>
+                            </div>
+                        </div>
+
+                        <!-- Botón Buscar -->
+                        <div class="filter-group filter-actions">
+                            <button class="search-btn">
+                                <ion-icon name="search-outline"></ion-icon>
+                                Buscar
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Mostrar registros -->
+                <div class="table-controls">
+                    <span class="show-label">Mostrar</span>
+                    <select [(ngModel)]="comprasPerPage" class="per-page-select">
+                        <option [value]="10">10</option>
+                        <option [value]="20">20</option>
+                        <option [value]="50">50</option>
+                    </select>
+                    <span class="show-label">registros</span>
+                </div>
+
+                <!-- Tabla de compras -->
+                <div class="compras-table-wrap">
+                    <table class="compras-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                                <th>Ítem / Servicio <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                                <th>Paciente <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                                <th>Cantidad <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                                <th>Precio <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                                <th>Estado de Pago <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                                <th>Recibo <ion-icon name="swap-vertical-outline"></ion-icon></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="comprasFiltradas.length === 0">
+                                <td colspan="7" class="no-data">Ningún dato disponible en esta tabla</td>
+                            </tr>
+                            <tr *ngFor="let c of comprasFiltradas" class="compra-row">
+                                <td>{{ c.fecha | date:'dd/MM/yyyy' }}</td>
+                                <td>{{ c.item }}</td>
+                                <td>{{ c.paciente }}</td>
+                                <td>{{ c.cantidad }}</td>
+                                <td>{{ c.precio | currency:'Bs. ' }}</td>
+                                <td>
+                                    <span class="pago-badge" [class]="c.estadoPago">
+                                        {{ c.estadoPago }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="recibo-btn" *ngIf="c.recibo" title="Ver recibo">
+                                        <ion-icon name="document-text-outline"></ion-icon>
+                                    </button>
+                                    <span *ngIf="!c.recibo" class="muted">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación info -->
+                <div class="compras-footer" *ngIf="comprasFiltradas.length > 0">
+                    <span class="records-info">
+                        Mostrando {{ comprasFiltradas.length }} registro(s)
+                    </span>
+                </div>
+
+            </div>
+
+            <!-- PLANES SECTION -->
+            <div class="section-content" *ngIf="activeSection === 'planes'">
+                <div class="empty-state">
+                    <ion-icon name="shield-checkmark-outline" class="empty-icon"></ion-icon>
+                    <p>No hay planes de salud activos para este tutor.</p>
+                </div>
+            </div>
+
+        </div>
+        <!-- END RIGHT PANEL -->
+
+    </div>
+
+    <!-- Not Found State -->
+    <div class="not-found-state" *ngIf="!isLoading && !tutor">
+        <ion-icon name="person-remove-outline" class="empty-icon"></ion-icon>
+        <h3>Tutor no encontrado</h3>
+        <p>El tutor con ID {{ tutorId }} no existe o fue eliminado.</p>
+        <button class="back-btn-center" (click)="goBack()">Volver a la lista</button>
+    </div>
+
+
+    <!-- Modal Selección de Especie (Nuevo Paciente) -->
+    <ion-modal [isOpen]="isSpeciesModalOpen" (didDismiss)="cerrarModalEspecies()" class="species-selector-modal">
+        <ng-template>
+            <div class="species-modal-container">
+                <div class="species-modal-header">
+                    <h2>Selecciona la especie:</h2>
+                    <button class="close-btn" (click)="cerrarModalEspecies()">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                </div>
+
+                <div class="species-grid">
+                    <div class="species-item" *ngFor="let esp of especies" (click)="seleccionarEspecie(esp.id)">
+                        <span class="species-name">{{ esp.nombre }}</span>
+                        <div class="species-circle">
+                            <img [src]="esp.img" [alt]="esp.nombre" (error)="onImgError($event)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </ion-modal>
+
+</ion-content>
